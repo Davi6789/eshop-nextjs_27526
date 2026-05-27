@@ -1,0 +1,153 @@
+eshop-nextjs_27526/
+├── src/
+│   ├── app/
+│   │   ├── (auth)/
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx
+│   │   │   ├── register/
+│   │   │   │   └── page.tsx
+│   │   │   ├── forgot-password/
+│   │   │   │   └── page.tsx
+│   │   │   └── reset-password/
+│   │   │       └── page.tsx
+│   │   ├── (shop)/
+│   │   │   ├── page.tsx (Home)
+│   │   │   ├── products/
+│   │   │   │   ├── [slug]/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── cart/
+│   │   │   │   └── page.tsx
+│   │   │   ├── checkout/
+│   │   │   │   └── page.tsx
+│   │   │   └── success/
+│   │   │       └── [orderId]/
+│   │   │           └── page.tsx
+│   │   ├── (dashboard)/
+│   │   │   └── dashboard/
+│   │   │       ├── page.tsx
+│   │   │       ├── orders/
+│   │   │       │   └── page.tsx
+│   │   │       └── wishlist/
+│   │   │           └── page.tsx
+│   │   ├── admin/
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── products/
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── new/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx
+│   │   │   ├── orders/
+│   │   │   │   └── page.tsx
+│   │   │   ├── users/
+│   │   │   │   └── page.tsx
+│   │   │   └── coupons/
+│   │   │       └── page.tsx
+│   │   ├── api/
+│   │   │   ├── auth/
+│   │   │   │   └── [...nextauth]/
+│   │   │   │       └── route.ts
+│   │   │   ├── products/
+│   │   │   │   ├── route.ts
+│   │   │   │   └── [id]/
+│   │   │   │       └── route.ts
+│   │   │   ├── cart/
+│   │   │   │   └── route.ts
+│   │   │   ├── orders/
+│   │   │   │   └── route.ts
+│   │   │   ├── reviews/
+│   │   │   │   └── route.ts
+│   │   │   ├── upload/
+│   │   │   │   └── route.ts
+│   │   │   └── coupons/
+│   │   │       └── route.ts
+│   │   └── layout.tsx
+│   ├── components/
+│   │   ├── ui/
+│   │   │   ├── Navbar.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   ├── CartDrawer.tsx
+│   │   │   ├── ProductCard.tsx
+│   │   │   ├── ProductGrid.tsx
+│   │   │   ├── ProductGallery.tsx
+│   │   │   ├── ReviewStars.tsx
+│   │   │   ├── CountdownTimer.tsx
+│   │   │   ├── CouponInput.tsx
+│   │   │   └── ImageUpload.tsx
+│   │   └── forms/
+│   │       ├── LoginForm.tsx
+│   │       ├── RegisterForm.tsx
+│   │       ├── CheckoutForm.tsx
+│   │       └── ProductForm.tsx
+│   ├── lib/
+│   │   ├── supabase/
+│   │   │   ├── client.ts
+│   │   │   └── server.ts
+│   │   ├── auth/
+│   │   │   └── config.ts
+│   │   ├── utils/
+│   │   │   ├── formatPrice.ts
+│   │   │   ├── validateDiscount.ts
+│   │   │   └── generateOrderNumber.ts
+│   │   └── hooks/
+│   │       ├── useCart.ts
+│   │       ├── useAuth.ts
+│   │       └── useWishlist.ts
+│   ├── types/
+│   │   ├── product.ts
+│   │   ├── order.ts
+│   │   ├── user.ts
+│   │   └── cart.ts
+│   └── styles/
+│       └── globals.css
+├── public/
+│   └── images/
+│       ├── headphones-1.jpg
+│       ├── tv-1.jpg
+│       └── ... (alle Produktbilder)
+├── .env.local
+├── .gitignore
+├── package.json
+├── tsconfig.json
+├── tailwind.config.ts
+├── next.config.js
+└── README.md
+==========================
+
+📅 Projektübersicht & Wochenplan
+Woche	Themen	Commits	Meilenstein
+Woche 1 (27.05-02.06)	Setup, DB, Auth	7+	Login/Register live
+Woche 2 (03.06-09.06)	Products, Search, Filter	7+	Produktübersicht
+Woche 3 (10.06-16.06)	Cart, Checkout, Payment	7+	Warenkorb fertig
+Woche 4 (17.06-23.06)	Admin Panel, Storage	7+	Admin Bereich
+Woche 5 (24.06-30.06)	Reviews, Wishlist, Coupons	7+	Feature Complete
+Woche 6 (01.07-06.07)	Testing, Deployment, Docs	7+	LIVE SHOP
+
+------------------
+
+📋 Inhaltsverzeichnis
+1. Projektübersicht & Wochenplan
+2. Tech-Stack Details
+3. Datenbank Schema
+4. Projektstruktur
+5. Woche-für-Woche Tagesplan
+6. Git Commits Guide
+7. Deployment Guide
+
+____________________
+
+Runtime & Package Manager:    - Bun (schneller als npm)
+Framework:                    - Next.js 15.2.16 (App Router)
+Language:                     - TypeScript 5.x
+Styling:                      - Tailwind CSS 3.x
+Database:                     - PostgreSQL (Supabase)
+Authentication:               - Auth.js (NextAuth) mit Supabase Adapter
+Validation:                   - Zod
+HTTP Client:                  - Fetch API (native)
+State Management:             - React Context + useReducer
+Deployment:                   - Vercel
+Version Control:              - GitHub
+
+===============
