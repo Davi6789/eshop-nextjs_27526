@@ -37,10 +37,35 @@ cd eshop-nextjs_270526
 👉 bun add @supabase/supabase-js @auth/core @auth/supabase-adapter zod bcryptjs
 👉 bun add -d @types/bcryptjs
 
-# Git Commit 1
+# Git Commit 1      ✅ 
 git init
 git add .
 git commit -m "Initial setup: Next.js 15 mit TypeScript & Tailwind"
 git branch -M main
-git remote add origin https://github.com/DEIN_USERNAME/eshop-nextjs_27526.git
-git push -u origin main
+git remote add origin git@github.com:Davi6789/eshop-nextjs_27526.git
+ git push -u origin main    ✅ 
+
+ ----------------------
+ Tag 2 (28.05) - Supabase Setup
+Tasks:
+
+- Supabase Projekt "eshopnext_270526" erstellen
+- SQL Schema ausführen (oben stehendes SQL)
+- 32 Produkte in Datenbank einfügen
+- RLS Policies aktivieren
+- .env.local mit Credentials befüllen
+
+Code: //  src/lib/supabase/client.ts
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+==========================
+git add .
+git commit -m "Supabase Setup: Datenbank Schema & 32 Produkte"
+git push
+
+--------------
