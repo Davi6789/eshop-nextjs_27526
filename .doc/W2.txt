@@ -1,0 +1,9 @@
+📅 Ausblick auf Woche 2 (03.06 - 09.06)
+
+Tag 8: Products API & Homepage
+Tag 9: Live-Suche mit Debounce
+Tag 10: Kategorien Filter & Sortierung
+Tag 11: Produktdetailseite mit Galerie
+Tag 12: Rabatt-System & Countdown Timer
+Tag 13: Bewertungen & Sterne
+Tag 14: Woche 2 Review

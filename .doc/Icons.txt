@@ -1,0 +1,32 @@
+✅  🚨   📊  ☕️ 🔒  🔄  📧  🧪  👑  
+
+⭐  🌱  📁  ✨  ⚙️  🔐  🛡️  🔒  🔍
+
+📦 🚀   🛒  📱  📝  💾  ➕  🎨  💥  
+
+👉  🗄️  🧱  🎯  🔷  –   🔗  📋  🏗️
+
+⏳ 📋   🖼️  🎉  🔵  🟣  🟢  🟡  🛑  
+
+❤️  🌐  📚  ⚡  🧹	📞	💳  💰  👨‍💼 
+
+💨  🔥  🎬  📖  🎁  🔁  💡  😄  📦
+
+⏰  📅  🐛  👨‍💻  📌  🔧  ❌  👁️  🌙 
+
+
+
+
+// In LoginForm onSubmit:
+const result = await signIn("credentials", {
+  email: data.email,
+  password: data.password,
+  redirect: false,
+})
+
+if (result?.error) {
+  setError("Email oder Passwort ist falsch")
+} else {
+  router.push("/dashboard") // ← Geändert von "/" zu "/dashboard" wie in middleware
+  router.refresh()
+}

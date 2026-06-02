@@ -1,0 +1,194 @@
+eshop-nextjs_27526/
+├── src/
+│   ├── app/
+│   │   ├── (auth)/
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx  ✅  W1t4s4 Login & Register Page mit Augen für Passwort anzeigen und Github anm.
+│   │   │   ├── register/
+│   │   │   │   └── page.tsx        ✅  W1t4s4 Registrierungs-Formular mit Passwort-Bestätigung 
+│   │   │   ├── forgot-password/
+│   │   │   │   └── page.tsx        ✅  W1t5s2 Forgot Password Seite (update SendGrid)
+│   │   │   └── reset-password/
+│   │   │       └── page.tsx        ✅  W1t5s3 reset Password Seite
+│   │   ├── (shop)/
+│   │   │   ├── page.tsx (Home)     ✅  W2t1
+│   │   │   ├── products/
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── [slug]/
+│   │   │   │       └── page.tsx
+│   │   │   ├── cart/
+│   │   │   │   └── page.tsx
+│   │   │   ├── checkout/
+│   │   │   │   └── page.tsx
+│   │   │   └── success/
+│   │   │       └── [orderId]/
+│   │   │           └── page.tsx
+│   │   ├── (dashboard)/
+│   │   │   └── dashboard/
+│   │   │       ├── page.tsx        ✅  W1t6s2 User Dashboard Hauptseite
+│   │   │       ├── orders/
+│   │   │       │   └── page.tsx    ✅  W1t6s3: Order History Seite
+│   │   │       ├── orders/
+│   │   │       │   └── [id]/page.tsx   ✅  W1t6s4: Bestelldetails Seite 
+│   │   │       └── wishlist/
+│   │   │           └── page.tsx    ✅  W1t6s5: Wishlist Funktionalität
+│   │   ├── admin/
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx        ✅  W1t5s6 Erste Admin Route - Dashboard
+│   │   │   ├── products/
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── new/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx
+│   │   │   ├── orders/
+│   │   │   │   └── page.tsx
+│   │   │   ├── users/
+│   │   │   │   └── page.tsx
+│   │   │   └── coupons/
+│   │   │       └── page.tsx
+│   │   ├── api/
+│   │   │   ├── auth/
+│   │   │   │   └── [...nextauth]/
+│   │   │   │   │        └── route.ts    ✅  W1t3s4 API rout für Auth (Credentials Provider )
+│   │   │   │   ├── register/           ← NEUE ORDNER ANLEGEN!  (Änderungen, verbesser)
+│   │   │   │   │     └── route.ts      ← NEUE DATEI HIER   ✅
+│   │   │   │   └── forgot-password/    ← NEUE ORDNER ANLEGEN!  (SendGrid )
+│   │   │   │        └── route.ts       ← NEUE DATEI HIER   ✅
+│   │   │   ├── products/
+│   │   │   │   ├── route.ts
+│   │   │   │   └── [id]/   
+│   │   │   │       └── route.ts
+│   │   │   ├── cart/
+│   │   │   │   └── route.ts
+│   │   │   ├── orders/
+│   │   │   │   └── route.ts
+│   │   │   ├── invoice/
+│   │   │   │       └── generate/
+│   │   │   │                └── route.ts
+│   │   │   ├── reviews/
+│   │   │   │   └── route.ts
+│   │   │   ├── upload/
+│   │   │   │   └── route.ts
+│   │   │   └── coupons/
+│   │   │       └── route.ts
+│   │   ├── layout.tsx   ✅   W1t3s7    Aktualisiere W1t4s7
+│   │   └── page.tsx     ✅   W1t4s7: Homepage erstellen
+│   │   
+│   ├── components/    
+│   │   ├── ui/
+│   │   │   ├── Navbar.tsx      ✅   W1t4s6 Root Layout mit Navbar aktualisieren für Dashboard Links
+│   │   │   ├── Footer.tsx
+│   │   │   ├── CartDrawer.tsx
+│   │   │   ├── ProductCard.tsx
+│   │   │   ├── ProductGrid.tsx
+│   │   │   ├── ProductGallery.tsx
+│   │   │   ├── ErrorBoundary.tsx   ✅   W1t7s5 Error Boundaries 
+│   │   │   ├── LoadingSpinner.tsx  ✅   W1t7s4 Loading States hinzufügen
+│   │   │   ├── ReviewStars.tsx
+│   │   │   ├── CountdownTimer.tsx
+│   │   │   ├── CouponInput.tsx
+│   │   │   ├── PasswordInput.tsx       // Nachträglich für pw anzeigen ✅ 
+│   │   │   ├── PasswordStrength.tsx       // Nachträglich für pw anzeigen  ✅ 
+│   │   │   └── ImageUpload.tsx
+│   │   ├── forms/
+│   │   │   ├── LoginForm.tsx       ✅  W1t4s2  Login Formular Komponente (Änderungen)
+│   │   │   ├── RegisterForm.tsx    ✅  W1t4s3  Register Formular Komponente (Änderungen)
+│   │   │   ├── CheckoutForm.tsx
+│   │   │   └── ProductForm.tsx
+│   │   └── providers/
+│   │       └── SessionProvider.tsx     ✅  W1t3s7 Session Provider für die App
+│   ├── lib/
+│   │   ├── supabase/
+│   │   │   ├── client.ts   ✅  W1t1    bun install @supabase/supabase-js
+│   │   │   └── server.ts   ✅  W1t7    Supabase-Operationen (z.B. im Dashboard) tu hoi chat    
+│   │   ├── auth/
+│   │   │   └── config.ts   ✅  W1t3s2 Auth.js Konfiguration (Credentials authorize) (Änderungen)
+│   │   ├── validations/
+│   │   │   └── auth.ts     ✅  W1t4s1 Zod Validierung Schemas  (Änderungen)
+│   │   ├── utils/
+│   │   │   ├── formatPrice.ts
+│   │   │   ├── validateDiscount.ts
+│   │   │   └── generateOrderNumber.ts
+│   │   └── hooks/
+│   │       ├── useCart.ts
+│   │       ├── useAuth.ts
+│   │       └── useWishlist.ts
+│   ├── types/
+│   │   ├── next-auth.d.ts  ✅ W1t3s3 TypeScript Typen erweitern
+│   │   ├── product.ts
+│   │   ├── order.ts
+│   │   ├── user.ts
+│   │   └── cart.ts
+│   ├── styles/
+│   │    └── globals.css
+│   └── /middleware.ts      ✅ W1t3s6   Middleware für geschützte Routes        W1t7s3  Routes optimieren
+│       
+├── public/
+│   └── images/
+│       ├── headphones-1.jpg
+│       ├── tv-1.jpg
+│       └── ... (alle Produktbilder)
+├── .env.local      ✅ W1t
+├── .gitignore      ✅ W1t
+├── package.json
+├── tsconfig.json
+├── tailwind.config.ts
+├── next.config.js
+└── README.md
+==========================
+
+📅 Projektübersicht & Wochenplan
+Woche	Themen	Commits	Meilenstein
+Woche 1 (27.05-02.06)	Setup, DB, Auth	7+	Login/Register live
+Woche 2 (03.06-09.06)	Products, Search, Filter	7+	Produktübersicht
+Woche 3 (10.06-16.06)	Cart, Checkout, Payment	7+	Warenkorb fertig 
+📦 Erweiterbb Option für die automatische Rechnungs-PDF per E-Mail nach erfolgreichem Bezahlen. was brauche für code (wie realität) PDF-Generierung mit pdfkit (Empfehlung für einfache Rechnungen), Email-Versand mit Nodemailer, Komplette Bestell-API Route, Frontend: Nach erfolgreicher Bezahlung.
+
+Für die automatische Rechnungs-PDF per E-Mail nach erfolgreichem Bezahlen brauchst du folgende Komponenten:
+Bestellung → Bezahlung erfolgreich → API Route aufrufen
+                                          ↓
+                                    PDF generieren
+                                          ↓
+                                    E-Mail versenden (mit PDF-Anhang)
+                                          ↓
+                                    Bestellstatus aktualisieren
+🔧 Detaillierte Implementierung
+1. PDF-Generierung mit pdfkit (Empfehlung für einfache Rechnungen)
+2. Email-Versand mit Nodemailer
+3. Komplette Bestell-API Route
+4. Frontend: Nach erfolgreicher Bezahlung
+🌙 Dark Mode	Unterstützt helle und dunkle Themes
+
+
+Woche 4 (17.06-23.06)	Admin Panel, Storage	7+	Admin Bereich
+Woche 5 (24.06-30.06)	Reviews, Wishlist, Coupons	7+	Feature Complete
+Woche 6 (01.07-06.07)	Testing, Deployment, Docs	7+	LIVE SHOP
+
+------------------
+
+📋 Inhaltsverzeichnis
+1. Projektübersicht & Wochenplan
+2. Tech-Stack Details
+3. Datenbank Schema
+4. Projektstruktur
+5. Woche-für-Woche Tagesplan
+6. Git Commits Guide
+7. Deployment Guide
+
+____________________
+
+Runtime & Package Manager:    - Bun (schneller als npm)
+Framework:                    - Next.js 15.2.16 (App Router)
+Language:                     - TypeScript 5.x
+Styling:                      - Tailwind CSS 3.x
+Database:                     - PostgreSQL (Supabase)
+Authentication:               - Auth.js (NextAuth) mit Supabase Adapter
+Validation:                   - Zod
+HTTP Client:                  - Fetch API (native)
+State Management:             - React Context + useReducer
+Deployment:                   - Vercel
+Version Control:              - GitHub
+
+===============
+SendGrid: 7H23TATCS56KLQGVTWKP48H8
