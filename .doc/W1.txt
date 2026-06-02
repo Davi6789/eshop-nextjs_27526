@@ -226,7 +226,7 @@ http://localhost:3000   ✅
 
 git add .
 git commit -m "Login & Register Seiten mit Formularen und Auth"
-
+git push
 -----------------------
 
 WOCHE 1 - TAG 5: Password Reset & Email Verification

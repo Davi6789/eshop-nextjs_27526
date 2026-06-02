@@ -1,9 +1,210 @@
 📅 Ausblick auf Woche 2 (03.06 - 09.06)
 
-Tag 8: Products API & Homepage
-Tag 9: Live-Suche mit Debounce
-Tag 10: Kategorien Filter & Sortierung
-Tag 11: Produktdetailseite mit Galerie
-Tag 12: Rabatt-System & Countdown Timer
+Tag 8: Products API & Homepage          5S ✅
+Tag 9: Live-Suche mit Debounce          3S ✅
+Tag 10: Kategorien Filter & Sortierung. 8S ✅
+Tag 11: Produktdetailseite mit Galerie. 8S  
+Tag 12: Rabatt-System & Countdown Timer 
 Tag 13: Bewertungen & Sterne
 Tag 14: Woche 2 Review
+
+=======================
+- Start Woche 2 mit Tag 8
+- Optional: Schonmal in Supabase die Products Tabelle anschauen
+----------
+📋 Heutige To-Do Liste  Mi 03.06.26
+Products API Route mit Filtering
+ProductCard Komponente
+ProductGrid Komponente
+Homepage mit Produktliste
+Dynamische Rabattberechnung
+-----------
+
+S1: Products API Route   =>  // src/app/api/products/route.ts   ✅  W2t1s1 
+
+S2: ProductCard Komponente   =>  // src/components/ui/ProductCard.tsx       ✅  W2T1S2 
+Produktbilder angezeigt werden (meist in einer Datei wie components/ui/ProductCard.tsx oder app/products/page.tsx)
+
+https://gemini.google.com/share/7b382a539e0a (Antonio) => cloudinary
+
+
+S3: ProductGrid Komponente  =>  ✅  W2T1S3 //  src/components/ui/ProductGrid.tsx   
+
+S4: Homepage mit Produktliste   =>  ✅ W2T1S4 //  src/app/page.tsx (Komplett ersetzen)
+
+S5: Produktübersichtsseite     =>  ✅ W2T1S5 //  src/app/(shop)/products/page.tsx
+#   📂 Erstelle die (shop) Route Group
+mkdir -p src/app/\(shop\)/products
+mkdir -p src/app/\(shop\)/products/\[slug\]
+mkdir -p src/app/\(shop\)/cart
+mkdir -p src/app/\(shop\)/checkout
+mkdir -p src/app/\(shop\)/success/\[orderId\]
+=========================
+src/app/
+├── (auth)/                    ← Auth Seiten (login, register, etc.)
+│   ├── login/
+│   │   └── page.tsx
+│   ├── register/
+│   │   └── page.tsx
+│   ├── forgot-password/
+│   │   └── page.tsx
+│   └── reset-password/
+│       └── page.tsx
+│
+├── (dashboard)/               ← User Dashboard (privat)
+│   └── dashboard/
+│       ├── page.tsx
+│       ├── orders/
+│       │   ├── page.tsx
+│       │   └── [id]/
+│       │       └── page.tsx
+│       └── wishlist/
+│           └── page.tsx
+│
+├── (shop)/                    ← Öffentlicher Shop
+│   ├── layout.tsx             ← Wichtig! Eigener Layout für Shop
+│   ├── page.tsx    ✅  W2t1S5 ← Homepage
+│   ├── products/
+│   │   ├── page.tsx ✅ W2t1S5 ← Produktübersicht
+│   │   └── [slug]/
+│   │       └── page.tsx       ← Produktdetail (morgen)
+│   ├── cart/
+│   │   └── page.tsx           ← Warenkorb (Woche 3)
+│   ├── checkout/
+│   │   └── page.tsx           ← Checkout (Woche 3)
+│   └── success/
+│       └── [orderId]/
+│           └── page.tsx       ← Erfolgsseite (Woche 3)
+│
+├── admin/                     ← Admin Panel (geschützt)
+│   └── page.tsx
+│
+├── api/                       ← API Routes
+│   ├── auth/
+│   │   └── [...nextauth]/
+│   │       └── route.ts
+│   └── products/
+│       └── route.ts
+│
+└── layout.tsx                 ← Root Layout (ohne Navbar!)
+========================
+✅ Was wir heute geschafft haben:
+yaml
+✅ Products API Route mit Filtering & Paginierung
+✅ ProductCard Komponente mit Wishlist & Cart
+✅ ProductGrid Komponente mit Loading States
+✅ Homepage mit Hero, Angeboten & Produkten
+✅ Produktübersichtsseite mit Suchfunktion
+✅ Dynamische Rabattberechnung
+✅ Sterne Bewertungsanzeige
+✅ Responsive Grid Layout
+------------------------
+6: GitHub Commit
+git add .
+git commit -m "Products API & Homepage: ProductGrid, ProductCard, dynamische Rabatte"
+
+git push
+
+==========================
+
+🚀 WOCHE 2 - TAG 9: Produktdetailseite mit Bildergalerie
+Heute: Do. 04.06.2026 - Produktdetails, Galerie & Lightbox
+Super! Jetzt bauen wir die Produktdetailseite - das Herzstück deines Shops!
+
+📋 Heutige To-Do Liste
+Produktdetail API Route
+Produktdetailseite mit [slug]
+Bildergalerie mit Thumbnails
+Lightbox für Bildvergrößerung
+Produktaktionen (Menge, Warenkorb)
+Verwandte Produkte
+
+✅ Lösung: Installiere lodash, weil:
+Es ist eine Standard-Bibliothek
+Dein Code erwartet sie
+Viele andere Projekte verwenden sie
+ 👉   bun add lodash && bun add -d @types/lodash
+
+🔴 S1: Produktdetail API Route  =>  //  src/app/api/products/[slug]/route.ts    ✅
+🟡 S2: Bildergalerie Komponente =>  //  src/components/ui/ProductGallery.tsx    ✅
+🟢 S3: Produktdetailseite       =>  //  src/app/(shop)/products/[slug]/page.tsx ✅
+
+📝 Schritt 4: GitHub Commit
+=====================
+git add .
+git commit -m "Produktdetailseite mit Bildergalerie & Lightbox"
+
+git push
+================
+✅ Was wir heute geschafft haben:
+✅ Produktdetail API Route mit [slug]
+✅ Bildergalerie mit Thumbnail Navigation
+✅ Lightbox mit Bildvergrößerung
+✅ Vorher/Nachher Pfeile in Lightbox
+✅ Mengenauswahl (1 bis Lagerbestand)
+✅ Warenkorb-Integration
+✅ Wunschlisten-Integration
+✅ Verwandte Produkte nach Kategorie
+✅ Breadcrumb Navigation
+✅ Responsive Design für alle Geräte
+✅ Lazy Loading für Bilder
+---------------
+🎉 Tag 9 erfolgreich abgeschlossen!
+Dein Shop hat jetzt:
+
+✅ Professionelle Produktdetailseite
+✅ Bildergalerie wie bei Amazon
+✅ Lightbox für große Bilder
+✅ Verwandte Produkte
+✅ Volle Warenkorb & Wunschlisten Integration
+
+=========================
+
+🚀 WOCHE 2 - TAG 10: Kategorien Filter & Live-Suche
+Heute: Fr. 05.06.2026 - Filter, Suche & Countdown Timer
+Super! Heute machen wir die Produktsuche und Filter richtig professionell!
+
+📋 Heutige To-Do Liste
+Live-Suche mit Debounce
+Kategorien Filter mit Badges
+Preisfilter (Slider)
+Sortierung optimieren
+Countdown Timer für Rabatte
+Filter State Management
+
+🔴 W2T10S1: Verbesserte Produktsuche mit Debounce => //  src/components/ui/SearchBar.tsx ✅
+🟡 W2T10S2: Search Suggestions API            //  src/app/api/products/suggestions/route.ts   ✅
+🟢 W2T10S3: Kategorien Filter Komponente      //  src/components/ui/CategoryFilter.tsx    ✅
+🔵 W2T10S4: Preisfilter mit Slider            //  src/components/ui/PriceFilter.tsx       ✅
+🟣 W2T10S5: Countdown Timer Komponente        //  src/components/ui/CountdownTimer.tsx    ✅
+🟠 W2T10S6: Verbesserte Produktübersichtsseite // src/app/(shop)/products/page.tsx (Komplett ersetzen) ✅
+📝 W2T10S7: Countdown in Produktkarte einbauen // Aktual. ProductCard.tsx - füge den Countdown Timer ✅ hinzu
+📝 Schritt 8: GitHub Commit
+git add .
+git commit -m "Live-Suche mit Debounce, Kategorien Filter, Preisfilter & Countdown Timer"
+git push
+---------------
+✅ Was wir heute geschafft haben:
+
+✅ Live-Suche mit Debounce (500ms Verzögerung)
+✅ Search Suggestions API
+✅ Kategorien Filter mit Badges und Anzahl
+✅ Preisfilter mit Slider
+✅ Sortierung optimiert (Neu, Preis, Bewertung)
+✅ Countdown Timer für Rabattangebote
+✅ Mobile-freundliche Filter (Toggle)
+✅ Filter zurücksetzen Button
+✅ URL-basierte Filter (teilenbar)
+---------------------
+🎉 Tag 10 erfolgreich abgeschlossen!
+Dein Shop hat jetzt:
+
+✅ Professionelle Live-Suche
+
+✅ Kategorien & Preis Filter
+
+✅ Countdown Timer für Deals
+
+✅ Mobile-responsive Filter
+
+✅ Teilbare Filter-URLs

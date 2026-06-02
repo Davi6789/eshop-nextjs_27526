@@ -13,9 +13,9 @@ eshop-nextjs_27526/
 │   │   ├── (shop)/
 │   │   │   ├── page.tsx (Home)     ✅  W2t1
 │   │   │   ├── products/
-│   │   │   │   ├── page.tsx
+│   │   │   │   ├── page.tsx        ✅  W2t1S5  Produktübersichtsseite (Komplett update)
 │   │   │   │   └── [slug]/
-│   │   │   │       └── page.tsx
+│   │   │   │       └── page.tsx    ✅  W2t9S3: Produktdetailseite
 │   │   │   ├── cart/
 │   │   │   │   └── page.tsx
 │   │   │   ├── checkout/
@@ -50,15 +50,19 @@ eshop-nextjs_27526/
 │   │   ├── api/
 │   │   │   ├── auth/
 │   │   │   │   └── [...nextauth]/
-│   │   │   │   │        └── route.ts    ✅  W1t3s4 API rout für Auth (Credentials Provider )
+│   │   │   │   │        └── route.ts    ✅  W1t3s4 API route für Auth (Credentials Provider )
 │   │   │   │   ├── register/           ← NEUE ORDNER ANLEGEN!  (Änderungen, verbesser)
 │   │   │   │   │     └── route.ts      ← NEUE DATEI HIER   ✅
 │   │   │   │   └── forgot-password/    ← NEUE ORDNER ANLEGEN!  (SendGrid )
 │   │   │   │        └── route.ts       ← NEUE DATEI HIER   ✅
 │   │   │   ├── products/
-│   │   │   │   ├── route.ts
+│   │   │   │   ├── route.ts          ✅  W2t8s1 API route für Products
+│   │   │   │   ├── suggestions.ts    ✅  W2t10s2: Search Suggestions API
 │   │   │   │   └── [id]/   
 │   │   │   │       └── route.ts
+│   │   │   │   └── [slug]/   
+│   │   │   │       └── route.ts ✅  W2t9s1 API route für Productdetail
+│   │   │   │     
 │   │   │   ├── cart/
 │   │   │   │   └── route.ts
 │   │   │   ├── orders/
@@ -75,21 +79,24 @@ eshop-nextjs_27526/
 │   │   ├── layout.tsx   ✅   W1t3s7    Aktualisiere W1t4s7
 │   │   └── page.tsx     ✅   W1t4s7: Homepage erstellen
 │   │   
-│   ├── components/    
+│   ├── components/    CategoryFilter.tsx 
 │   │   ├── ui/
 │   │   │   ├── Navbar.tsx      ✅   W1t4s6 Root Layout mit Navbar aktualisieren für Dashboard Links
 │   │   │   ├── Footer.tsx
 │   │   │   ├── CartDrawer.tsx
-│   │   │   ├── ProductCard.tsx
-│   │   │   ├── ProductGrid.tsx
-│   │   │   ├── ProductGallery.tsx
+│   │   │   ├── CategoryFilter.tsx  ✅  W2T10S3: Preisfilter mit Slider 
+│   │   │   ├── ProductCard.tsx     ✅  W2T1S1 ProductCard Komponente / Akt. füge den Countdown Timer hinzu
+│   │   │   ├── ProductGrid.tsx     ✅  W2T1S3 ProductGrid Komponente
+│   │   │   ├── ProductGallery.tsx  ✅  W2T9S2: Bildergalerie Komponente 
 │   │   │   ├── ErrorBoundary.tsx   ✅   W1t7s5 Error Boundaries 
 │   │   │   ├── LoadingSpinner.tsx  ✅   W1t7s4 Loading States hinzufügen
 │   │   │   ├── ReviewStars.tsx
-│   │   │   ├── CountdownTimer.tsx
+│   │   │   ├── CountdownTimer.tsx  ✅  W2T10S5: Countdown Timer Komponente
 │   │   │   ├── CouponInput.tsx
 │   │   │   ├── PasswordInput.tsx       // Nachträglich für pw anzeigen ✅ 
 │   │   │   ├── PasswordStrength.tsx       // Nachträglich für pw anzeigen  ✅ 
+│   │   │   ├── PriceFilter.tsx     ✅  W2T10S: Preisfilter mit Slider
+│   │   │   ├── SearchBar.tsx       ✅  W1t10S1: Verbesserte Produktsuche mit Debounce
 │   │   │   └── ImageUpload.tsx
 │   │   ├── forms/
 │   │   │   ├── LoginForm.tsx       ✅  W1t4s2  Login Formular Komponente (Änderungen)
