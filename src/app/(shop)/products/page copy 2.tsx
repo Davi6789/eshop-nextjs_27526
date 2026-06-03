@@ -2,8 +2,9 @@
 
 "use client"
 
-import { useState, useEffect, useCallback, useRef, Suspense } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { useSearchParams } from "next/navigation"
+//import ProductCard from "@/components/ui/ProductCard"
 import ProductGrid from "@/components/ui/ProductGrid"
 import SearchBar from "@/components/ui/SearchBar"
 import CategoryFilter from "@/components/ui/CategoryFilter"
@@ -18,24 +19,20 @@ function ProductsContent() {
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const initialLoadDone = useRef(false)
 
+  // export default function ProductsPage() {
+  // const searchParams = useSearchParams()
+  // const [products, setProducts] = useState([])
+  // const [loading, setLoading] = useState(true)
+  // const initialLoadDone = useRef(false) // ← Verhindert doppelte Loads
+
   const loadProducts = useCallback(async () => {
     setLoading(true)
-    try {
-      const params = new URLSearchParams(searchParams)
-      params.set("sort", sortBy)
-      params.set("limit", "20")
-
-      const res = await fetch(`/api/products?${params.toString()}`)
-      const data = await res.json()
-      setProducts(data.products || [])
-      setTotal(data.total || 0)
-    } catch (error) {
-      console.error("Fehler beim Laden der Produkte:", error)
-      setProducts([])
-    } finally {
-      setLoading(false)
-    }
-  }, [searchParams, sortBy])
+    const page = searchParams.get("page") || "1"
+    const res = await fetch(`/api/products?page=${page}&sort=newest&limit=20`)
+    const data = await res.json()
+    setProducts(data.products || [])
+    setLoading(false)
+  }, [searchParams]) // ← Nur wenn searchParams sich ändert
 
   // Nur einmal beim ersten Mount laden
   useEffect(() => {
@@ -43,7 +40,39 @@ function ProductsContent() {
       initialLoadDone.current = true
       loadProducts()
     }
-  }, [loadProducts])
+  }, [loadProducts]) // ← Nur einmal beim Mount
+
+  // Bei Änderung von searchParams oder sortBy neu laden
+  useEffect(() => {
+    loadProducts()
+  }, [searchParams, sortBy])
+
+  let globalRequestCount = 0
+
+export default function ProductsPage() {
+  useEffect(() => {
+    globalRequestCount++
+    if (globalRequestCount > 1) {
+      console.warn("🚨 Zu viele Requests!", globalRequestCount)
+    }
+  }, [])
+  const loadProducts = async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams(searchParams)
+      params.set("sort", sortBy)
+      params.set("limit", "20")
+      
+      const res = await fetch(`/api/products?${params.toString()}`)
+      const data = await res.json()
+      setProducts(data.products)
+      setTotal(data.total)
+    } catch (error) {
+      console.error("Fehler:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSortChange = (value: string) => {
     setSortBy(value)
@@ -61,6 +90,7 @@ function ProductsContent() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -86,14 +116,10 @@ function ProductsContent() {
 
         <div className="flex flex-col md:flex-row gap-8">
           {/* Filters Sidebar */}
-          <div
-            className={`${
-              isFilterOpen ? "block" : "hidden"
-            } md:block w-full md:w-64 space-y-6`}
-          >
+          <div className={`${isFilterOpen ? "block" : "hidden"} md:block w-full md:w-64 space-y-6`}>
             <CategoryFilter />
             <PriceFilter />
-
+            
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
