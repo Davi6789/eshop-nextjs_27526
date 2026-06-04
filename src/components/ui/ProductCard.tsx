@@ -1,43 +1,42 @@
-// src/components/ui/ProductCard.tsx
+// src/components/ui/ProductCard.tsx  
 
-"use client";
+"use client"
 
-import Image from "next/image";
-import Link from "next/link";
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase/client";
-import { useSession } from "next-auth/react";
-import CountdownTimer from "./CountdownTimer";
+import Image from "next/image"
+import Link from "next/link"
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase/client"
+import { useSession } from "next-auth/react"
 
 interface ProductCardProps {
   product: {
-    id: string;
-    title: string;
-    slug: string;
-    description: string;
-    price: number;
-    current_price: number;
-    has_discount: boolean;
-    discount_percent: number;
-    image_url: string | null;
-    images: string[] | null;
-    stock: number;
-    rating_avg: number;
-    rating_count: number;
-  };
+    id: string
+    title: string
+    slug: string
+    description: string
+    price: number
+    current_price: number
+    has_discount: boolean
+    discount_percent: number
+    image_url: string | null
+    images: string[] | null
+    stock: number
+    rating_avg: number
+    rating_count: number
+  }
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { data: session } = useSession();
-  const [isInWishlist, setIsInWishlist] = useState(false);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const { data: session } = useSession()
+  const [isInWishlist, setIsInWishlist] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
 
   // Prüfen ob Produkt in Wunschliste ist
   useEffect(() => {
     if (session?.user?.id) {
-      checkWishlistStatus();
+      checkWishlistStatus()
     }
-  }, [session]);
+  }, [session])
 
   const checkWishlistStatus = async () => {
     const { data, error } = await supabase
@@ -45,17 +44,17 @@ export default function ProductCard({ product }: ProductCardProps) {
       .select("id")
       .eq("user_id", session?.user?.id)
       .eq("product_id", product.id)
-      .single();
+      .single()
 
     if (!error && data) {
-      setIsInWishlist(true);
+      setIsInWishlist(true)
     }
-  };
+  }
 
   const toggleWishlist = async () => {
     if (!session) {
-      window.location.href = "/login";
-      return;
+      window.location.href = "/login"
+      return
     }
 
     if (isInWishlist) {
@@ -64,71 +63,65 @@ export default function ProductCard({ product }: ProductCardProps) {
         .from("wishlist")
         .delete()
         .eq("user_id", session.user.id)
-        .eq("product_id", product.id);
+        .eq("product_id", product.id)
 
       if (!error) {
-        setIsInWishlist(false);
+        setIsInWishlist(false)
       }
     } else {
       // Zur Wunschliste hinzufügen
-      const { error } = await supabase.from("wishlist").insert({
-        user_id: session.user.id,
-        product_id: product.id,
-      });
+      const { error } = await supabase
+        .from("wishlist")
+        .insert({
+          user_id: session.user.id,
+          product_id: product.id
+        })
 
       if (!error) {
-        setIsInWishlist(true);
+        setIsInWishlist(true)
       }
     }
-  };
+  }
 
   const addToCart = () => {
     // Temporärer Cart - später mit Context
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const existingItem = cart.find((item: any) => item.id === product.id);
-
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+    const existingItem = cart.find((item: any) => item.id === product.id)
+    
     if (existingItem) {
-      existingItem.quantity += 1;
+      existingItem.quantity += 1
     } else {
       cart.push({
         id: product.id,
         title: product.title,
         price: product.current_price,
         image: product.image_url,
-        quantity: 1,
-      });
+        quantity: 1
+      })
     }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-
+    
+    localStorage.setItem("cart", JSON.stringify(cart))
+    
     // Event für Cart Update auslösen
-    window.dispatchEvent(new Event("cartUpdated"));
-
-    setIsAddingToCart(true);
-    setTimeout(() => setIsAddingToCart(false), 1000);
-  };
+    window.dispatchEvent(new Event("cartUpdated"))
+    
+    setIsAddingToCart(true)
+    setTimeout(() => setIsAddingToCart(false), 1000)
+  }
 
   // Sterne Bewertung anzeigen
   const renderStars = () => {
-    const stars = [];
-    const rating = Math.round(product.rating_avg);
+    const stars = []
+    const rating = Math.round(product.rating_avg)
     for (let i = 1; i <= 5; i++) {
       stars.push(
-        <span
-          key={i}
-          className={i <= rating ? "text-yellow-400" : "text-gray-300"}
-        >
+        <span key={i} className={i <= rating ? "text-yellow-400" : "text-gray-300"}>
           ★
-        </span>,
-      );
+        </span>
+      )
     }
-    return stars;
-  };
-
-  // HIER GEÄNDERT: Fallback für die kaputten lokalen Bilder
-  const displayImageUrl = product.image_url?.startsWith("/images/")
-    ? `https://picsum.photos/seed/${product.slug}/400/300`
-    : product.image_url || `https://picsum.photos/seed/${product.slug}/400/300`;
+    return stars
+  }
 
   return (
     <div className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden">
@@ -139,33 +132,32 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       )}
 
-      {product.has_discount && product.discount_ends_at && (
-        <div className="absolute bottom-2 left-2 z-10">
-          <CountdownTimer targetDate={product.discount_ends_at} />
-        </div>
-      )}
-
       {/* Wishlist Button */}
       <button
         onClick={toggleWishlist}
         className="absolute top-2 right-2 z-10 bg-white dark:bg-gray-800 rounded-full p-2 shadow-md hover:scale-110 transition"
       >
-        <span className="text-xl">{isInWishlist ? "❤️" : "🤍"}</span>
+        <span className="text-xl">
+          {isInWishlist ? "❤️" : "🤍"}
+        </span>
       </button>
 
       {/* Product Image */}
-      <Link href={`/products/${product.slug}`} className="block relative z-0">
+      <Link href={`/products/${product.slug}`}>
         <div className="relative h-64 bg-gray-200 dark:bg-gray-700 overflow-hidden">
-          {/* {product.image_url ? ( */}
-          <Image
-            // src={product.image_url}
-            src={displayImageUrl}
-            alt={product.title}
-            fill
-            unoptimized // WICHTIG: Stoppt die Next.js Bildprüfung für leere Dateien
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
+          {product.image_url ? (
+            <Image
+              src={product.image_url}
+              alt={product.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-400">Kein Bild</span>
+            </div>
+          )}
         </div>
       </Link>
 
@@ -180,7 +172,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Rating */}
         {product.rating_count > 0 && (
           <div className="flex items-center mt-1">
-            <div className="flex text-sm">{renderStars()}</div>
+            <div className="flex text-sm">
+              {renderStars()}
+            </div>
             <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
               ({product.rating_count})
             </span>
@@ -228,5 +222,5 @@ export default function ProductCard({ product }: ProductCardProps) {
         </button>
       </div>
     </div>
-  );
+  )
 }
