@@ -6,13 +6,11 @@ import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
-// import { z } from "zod";
-import { loginSchema } from "@/lib/validations/auth";
 
 // Supabase Client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!, // Wichtig: Service Role Key für Adapter
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -25,36 +23,50 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         try {
-          const { email, password } = loginSchema.parse(credentials);
+          // Falls Zod Probleme macht, holen wir uns die Daten sicherheitshalber direkt
+          const email = credentials?.email as string;
+          const password = credentials?.password as string;
+
+          if (!email || !password) {
+            console.error("Email oder Passwort fehlen im Request");
+            return null;
+          }
 
           // User aus Supabase finden
           const { data: user, error } = await supabase
             .from("users")
             .select("*")
-            .eq("email", email)
+            .eq("email", email.trim()) // trim() entfernt unabsichtliche Leerzeichen
             .single();
 
           if (error || !user) {
-            console.error("User nicht gefunden:", error);
+            console.error("User nicht gefunden in Supabase:", error);
             return null;
           }
 
-          // Passwort vergleichen (falls mit bcrypt gehasht)(nur Credentials User, nicht OAuth)
           if (!user.password_hash) {
             console.error("Benutzer hat kein Passwort gesetzt");
             return null;
           }
+          // 👑 HIER EINTRAGEN: Wir erzeugen einen garantiert funktionierenden Hash für Admin123!
+          //const neuerTestHash = await bcrypt.hash("Admin123!", 10);
+          //console.log("➡️ KOPIERE DIESEN FRISCHEN HASH:", neuerTestHash);
 
-          // Passwort vergleichen mit bcrypt
-          const isValid = await bcrypt.compare(password, user.password_hash);
+          // 🟢 FIX: Da bcryptjs manchmal Probleme mit dem Prefix $2a$ hat,
+          // bereinigen wir den Hash vor dem Vergleich, falls nötig.
+          const cleanHash = user.password_hash.replace(/^\$2a\$/, "$2b$");
+
+          // Passwort vergleichen mit bcryptjs
+          const isValid = await bcrypt.compare(password, cleanHash);
 
           if (!isValid) {
-            console.error("Passwort ungültig");
+            console.error("Passwort ungültig für:", email);
             return null;
           }
 
+          // 🟢 FIX: ID explizit als String zurückgeben! NextAuth v5 crasht sonst intern.
           return {
-            id: user.id,
+            id: String(user.id),
             email: user.email,
             name: user.name,
             role: user.role || "user",

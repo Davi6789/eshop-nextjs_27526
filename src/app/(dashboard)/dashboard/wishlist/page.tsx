@@ -26,7 +26,7 @@ interface WishlistItem {
 
 export default function WishlistPage() {
   const { data: session, status } = useSession();
-  const router = useRouter()  
+  const router = useRouter();
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -49,23 +49,66 @@ export default function WishlistPage() {
 
     setIsLoading(true);
 
-    const { data, error } = await supabase
-      .from("wishlist")
-      .select(
-        `
-        id,
-        product_id,
-        products (*)
-      `,
-      )
-      .eq("user_id", session?.user?.id);
+    // console.log("Loading wishlist for user:", session?.user?.id); // ← DEBUG!
 
-    if (!error && data) {
-      setWishlistItems(data as any);
-    } else if (error) {
-      console.error("Error loading wishlist:", error);
+    // const { data, error } = await supabase
+    //   .from("wishlist")
+    //   .select(
+    //     `
+    //     id,
+    //     product_id,
+    //     products (*)
+    //   `,
+    //   )
+    //   .eq("user_id", session?.user?.id);
+
+    // console.log("Wishlist data:", data); // ← DEBUG!
+    // console.log("Wishlist error:", error); // ← DEBUG!
+
+    // if (!error && data) {
+    //   setWishlistItems(data as any);
+    // } else if (error) {
+    //   console.error("Error loading wishlist:", error);
+    // }
+try {
+    // Schritt 1: Lade nur die Wishlist-Items
+    const { data: wishlistData, error: wishlistError } = await supabase
+      .from("wishlist")
+      .select("id, product_id")
+      .eq("user_id", session.user.id);
+
+    if (wishlistError) {
+      console.error("Wishlist error:", wishlistError);
+      setIsLoading(false);
+      return;
     }
 
+    console.log("Wishlist items:", wishlistData);
+
+    // Schritt 2: Lade die Produkte separat
+    if (wishlistData && wishlistData.length > 0) {
+      const productIds = wishlistData.map((item: any) => item.product_id);
+      
+      const { data: productsData, error: productsError } = await supabase
+        .from("products")
+        .select("*")
+        .in("id", productIds);
+
+      if (!productsError && productsData) {
+        // Merge die Daten
+        const merged = wishlistData.map((item: any) => ({
+          id: item.id,
+          product_id: item.product_id,
+          products: productsData.find((p: any) => p.id === item.product_id),
+        }));
+        
+        setWishlistItems(merged);
+        console.log("Final items:", merged);
+      }
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
     setIsLoading(false);
   };
 

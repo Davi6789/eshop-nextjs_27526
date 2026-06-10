@@ -1,8 +1,23 @@
-//  src/components/ui/ProductGrid.tsx   
+ //  src/components/ui/ProductGrid.tsx   
 
 "use client"
 
-import ProductCard from "./ProductCard"
+import dynamic from 'next/dynamic'
+import LoadingSpinner from './LoadingSpinner'
+
+// Dynamischer Import für ProductCard (Code Splitting)
+const ProductCard = dynamic(() => import('./ProductCard'), {
+  loading: () => (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse">
+      <div className="h-48 bg-gray-300 dark:bg-gray-700"></div>
+      <div className="p-4">
+        <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+        <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2"></div>
+      </div>
+    </div>
+  ),
+  ssr: true,
+})
 
 interface ProductGridProps {
   products: any[]
@@ -15,10 +30,10 @@ export default function ProductGrid({ products, loading }: ProductGridProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {[...Array(8)].map((_, i) => (
           <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse">
-            <div className="h-64 bg-gray-300 dark:bg-gray-700"></div>
+            <div className="h-48 bg-gray-300 dark:bg-gray-700"></div>
             <div className="p-4">
-              <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded mb-2"></div>
-              <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-2/3"></div>
+              <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
               <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded mt-4"></div>
             </div>
           </div>
@@ -38,7 +53,8 @@ export default function ProductGrid({ products, loading }: ProductGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 items-stretch">
+    {/* // <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"> */}
       {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}

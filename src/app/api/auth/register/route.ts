@@ -106,7 +106,7 @@ export async function POST(request: Request) {
     //   );
     // }
 
-    console.log("Benutzer erfolgreich erstellt:", user.id);
+    console.log("Benutzer erfolgreich erstellt:", newUser.id);
 
     return NextResponse.json(
       {
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Validierungsfehler", details: error.errors },
+        { error: "Validierungsfehler", details: error.issues },
         { status: 400 }
       )
     }

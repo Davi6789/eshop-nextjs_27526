@@ -4,11 +4,10 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
-// import { SupabaseAdapter } from "@auth/supabase-adapter";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 // import { z } from "zod";
-import { loginSchema } from "@/lib/validations/auth"
+import { loginSchema } from "@/lib/validations/auth";
 
 // Supabase Client
 const supabase = createClient(
@@ -17,10 +16,6 @@ const supabase = createClient(
 );
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  // adapter: SupabaseAdapter({
-  //   url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  //   secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  // }),
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -45,14 +40,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           // Passwort vergleichen (falls mit bcrypt gehasht)(nur Credentials User, nicht OAuth)
-          if (!user.password) {
+          if (!user.password_hash) {
+            console.error("Benutzer hat kein Passwort gesetzt");
             return null;
           }
-          
-          // Passwort vergleichen
+
+          // Passwort vergleichen mit bcrypt
           const isValid = await bcrypt.compare(password, user.password_hash);
 
           if (!isValid) {
+            console.error("Passwort ungültig");
             return null;
           }
 

@@ -5,22 +5,45 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
+    // Cache für 60 Sekunden (ISR ähnlich)
+  const response = new NextResponse()
+  response.headers.set('Cache-Control', 's-maxage=60, stale-while-revalidate=300')
   
   // Filter Parameter
+  // const filter = searchParams.get("filter")
+  // const page = parseInt(searchParams.get("page") || "1")
+  // const maxPrice = parseFloat(searchParams.get("maxPrice") || "0")
+  // const sort = searchParams.get("sort") || "newest"
+  // const limit = parseInt(searchParams.get("limit") || "20")
+  // const category = searchParams.get('category')
+  // const search = searchParams.get('search')
+  // const minPrice = searchParams.get('minPrice')
+  // const maxPrice = searchParams.get('maxPrice')
+  // const sort = searchParams.get('sort') || 'created_at'
+
+  const filter = searchParams.get("filter")
   const category = searchParams.get('category')
   const search = searchParams.get('search')
   const minPrice = searchParams.get('minPrice')
   const maxPrice = searchParams.get('maxPrice')
-  const sort = searchParams.get('sort') || 'created_at'
-  const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50
-  const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1
-  
+  const sort = searchParams.get('sort') || 'newest'
+
+  // // Paginierung - NUR EINMAL definieren!
+  // const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50
+  // const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1
+
+  const limit = parseInt(searchParams.get('limit') || '20')
+  const page = parseInt(searchParams.get('page') || '1')
+
   // Query starten
   let query = supabase
     .from('products')
     .select('*', { count: 'exact' })
 
   // Filter anwenden
+  if (filter === "discount") {
+    query = query.not("discount_price", "is", null)
+  }
   if (category && category !== 'alle') {
     query = query.eq('category', category)
   }
@@ -55,7 +78,7 @@ export async function GET(request: NextRequest) {
       query = query.order('created_at', { ascending: false })
   }
 
-  // Paginierung
+  // Paginierung - berechne from/to
   const from = (page - 1) * limit
   const to = from + limit - 1
   query = query.range(from, to)
@@ -91,5 +114,9 @@ export async function GET(request: NextRequest) {
     page,
     limit,
     totalPages: Math.ceil((count || 0) / limit)
+     }, {
+    headers: {
+      'Cache-Control': 's-maxage=60, stale-while-revalidate=300',
+    }
   })
 }

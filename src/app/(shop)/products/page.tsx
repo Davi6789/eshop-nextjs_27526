@@ -1,143 +1,144 @@
-// src/app/(shop)/products/page.tsx
+// src/app/(shop)/products/page.tsx (Produktliste)
 
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import ProductGrid from "@/components/ui/ProductGrid"
-import { supabase } from "@/lib/supabase/client"
+import type { Metadata } from "next";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import ProductGrid from "@/components/ui/ProductGrid";
+import SearchBar from "@/components/ui/SearchBar";
+import CategoryFilter from "@/components/ui/CategoryFilter";
+import PriceFilter from "@/components/ui/PriceFilter";
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [categories, setCategories] = useState<string[]>([])
-  const [selectedCategory, setSelectedCategory] = useState("alle")
-  const [searchTerm, setSearchTerm] = useState("")
-  const [sortBy, setSortBy] = useState("newest")
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 })
+function ProductsContent() {
+  const searchParams = useSearchParams();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const initialLoadDone = useRef(false);
+  const loadingRef = useRef(false);
 
-  useEffect(() => {
-    loadCategories()
-    loadProducts()
-  }, [selectedCategory, searchTerm, sortBy, priceRange])
-
-  const loadCategories = async () => {
-    const { data } = await supabase
-      .from("products")
-      .select("category")
-      .not("category", "is", null)
+  const loadProducts = useCallback(async () => {
+    if (loadingRef.current) return  // ← Verhindert parallele Requests
+    loadingRef.current = true
     
-    if (data) {
-      const unique = [...new Set(data.map(p => p.category))]
-      setCategories(unique)
-    }
-  }
-
-  const loadProducts = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      let url = `/api/products?limit=20&sort=${sortBy}`
-      if (selectedCategory !== "alle") {
-        url += `&category=${selectedCategory}`
-      }
-      if (searchTerm) {
-        url += `&search=${searchTerm}`
-      }
-      if (priceRange.min > 0) {
-        url += `&minPrice=${priceRange.min}`
-      }
-      if (priceRange.max < 1000) {
-        url += `&maxPrice=${priceRange.max}`
-      }
-      
-      const res = await fetch(url)
-      const data = await res.json()
-      setProducts(data.products)
+      const params = new URLSearchParams(searchParams);
+      params.set("sort", sortBy);
+      params.set("limit", "20");
+
+      const res = await fetch(`/api/products?${params.toString()}`);
+      const data = await res.json();
+      setProducts(data.products || []);
+      setTotal(data.total || 0);
     } catch (error) {
-      console.error("Fehler:", error)
+      console.error("Fehler beim Laden der Produkte:", error);
+      setProducts([]);
     } finally {
-      setLoading(false)
+      setLoading(false); 
+      loadingRef.current = false
     }
-  }
+  }, [searchParams, sortBy]);
+
+  // Nur einmal beim ersten Mount laden
+  useEffect(() => {
+    if (!initialLoadDone.current) {
+      initialLoadDone.current = true;
+      loadProducts();
+    }
+  }, [loadProducts]);
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    const params = new URLSearchParams(searchParams);
+    params.set("sort", value);
+    window.history.pushState({}, "", `/products?${params.toString()}`);
+  };
+
+  const clearFilters = () => {
+    window.location.href = "/products";
+  };
+
+  const hasActiveFilters = searchParams.toString().length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Alle Produkte
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Entdecke unsere vielfältige Produktauswahl
+            {total} Produkte gefunden
           </p>
         </div>
 
         {/* Search Bar */}
         <div className="mb-6">
-          <input
-            type="text"
-            placeholder="🔍 Produkte suchen..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-96 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
-          />
+          <SearchBar />
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 mb-8">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg dark:bg-gray-800 dark:text-white"
-          >
-            <option value="alle">Alle Kategorien</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+        {/* Mobile Filter Button */}
+        <button
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          className="mb-4 md:hidden w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 py-2 rounded-lg"
+        >
+          {isFilterOpen ? "▼ Filter schließen" : "▲ Filter öffnen"}
+        </button>
 
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg dark:bg-gray-800 dark:text-white"
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Filters Sidebar */}
+          <div
+            className={`${
+              isFilterOpen ? "block" : "hidden"
+            } md:block w-full md:w-64 space-y-6`}
           >
-            <option value="newest">Neueste zuerst</option>
-            <option value="price_asc">Preis aufsteigend</option>
-            <option value="price_desc">Preis absteigend</option>
-            <option value="rating">Beste Bewertung</option>
-          </select>
+            <CategoryFilter />
+            <PriceFilter />
 
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-600 dark:text-gray-400">Preis:</span>
-            <input
-              type="number"
-              placeholder="Min"
-              value={priceRange.min || ""}
-              onChange={(e) => setPriceRange({ ...priceRange, min: Number(e.target.value) })}
-              className="w-24 px-2 py-1 border rounded dark:bg-gray-800"
-            />
-            <span>-</span>
-            <input
-              type="number"
-              placeholder="Max"
-              value={priceRange.max === 1000 ? "" : priceRange.max}
-              onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
-              className="w-24 px-2 py-1 border rounded dark:bg-gray-800"
-            />
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="w-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+              >
+                Alle Filter zurücksetzen
+              </button>
+            )}
+          </div>
+
+          {/* Products Area */}
+          <div className="flex-1">
+            {/* Sortierung */}
+            <div className="mb-6 flex justify-end">
+              <select
+                value={sortBy}
+                onChange={(e) => handleSortChange(e.target.value)}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg dark:bg-gray-800 dark:text-white"
+              >
+                <option value="newest">Neueste zuerst</option>
+                <option value="price_asc">Preis aufsteigend</option>
+                <option value="price_desc">Preis absteigend</option>
+                <option value="rating">Beste Bewertung</option>
+              </select>
+            </div>
+
+            {/* Product Grid */}
+            <ProductGrid products={products} loading={loading} />
           </div>
         </div>
-
-        {/* Product Grid */}
-        <ProductGrid products={products} loading={loading} />
-
-        {/* Results count */}
-        {!loading && (
-          <div className="mt-8 text-center text-gray-600 dark:text-gray-400">
-            {products.length} Produkte gefunden
-          </div>
-        )}
       </div>
     </div>
-  )
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-12">Laden...</div>}>
+      <ProductsContent />
+    </Suspense>
+  );
 }
