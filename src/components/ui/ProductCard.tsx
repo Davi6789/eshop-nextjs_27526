@@ -19,7 +19,7 @@ interface ProductCardProps {
     current_price: number;
     has_discount: boolean;
     discount_percent: number;
-    discount_ends_at: string | null; 
+    discount_ends_at: string | null;
     image_url: string | null;
     images: string[] | null;
     stock: number;
@@ -62,64 +62,68 @@ export default function ProductCard({ product }: ProductCardProps) {
       return;
     }
 
-try {
-    if (isInWishlist) {
-      // Aus Wunschliste entfernen
-      const { error } = await supabase
-        .from("wishlist")
-        .delete()
-        .eq("user_id", session.user.id)
-        .eq("product_id", product.id);
+    try {
+      if (isInWishlist) {
+        // Aus Wunschliste entfernen
+        const { error } = await supabase
+          .from("wishlist")
+          .delete()
+          .eq("user_id", session.user.id)
+          .eq("product_id", product.id);
 
-      if (!error) {
-        setIsInWishlist(false);
-        console.log("✅ Aus Wishlist entfernt");
+        if (!error) {
+          setIsInWishlist(false);
+          console.log("✅ Aus Wishlist entfernt");
+        } else {
+          console.error("❌ Delete error:", error);
+        }
       } else {
-        console.error("❌ Delete error:", error);
-      }
-    } else {
-      // Zur Wunschliste hinzufügen
-      const { error } = await supabase.from("wishlist").insert({
-        user_id: session.user.id,
-        product_id: product.id,
-      });
+        // Zur Wunschliste hinzufügen
+        const { error } = await supabase.from("wishlist").insert({
+          user_id: session.user.id,
+          product_id: product.id,
+        });
 
-      if (!error) {
-        setIsInWishlist(true);
-        console.log("✅ Zur Wishlist hinzugefügt");
-      } else {
-        console.error("❌ Insert error:", error);
+        if (!error) {
+          setIsInWishlist(true);
+          console.log("✅ Zur Wishlist hinzugefügt");
+        } else {
+          console.error("❌ Insert error:", error);
+        }
       }
+    } catch (error) {
+      console.error("❌ Wishlist error:", error);
     }
-  } catch (error) {
-    console.error("❌ Wishlist error:", error);
-  }
-};
+  };
 
   const addToCart = () => {
+    if (!product) return;
+
     // Temporärer Cart - später mit Context
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const existingItem = cart.find((item: any) => item.id === product.id);
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+  const existingItem = cart.find((item: any) => item.id === product.id)
 
-    if (existingItem) {
-      existingItem.quantity += 1;
-    } else {
-      cart.push({
-        id: product.id,
-        title: product.title,
-        price: product.current_price,
-        image: product.image_url,
-        quantity: 1,
-      });
-    }
+  if (existingItem) {
+    existingItem.quantity += 1  // ✅ Immer +1
+    console.log("✅ Menge erhöht:", existingItem);  // ← NEU
+  } else {
+    cart.push({
+      id: product.id,
+      title: product.title,
+      price: product.current_price,
+      image: product.images?.[0],
+      quantity:  1,  // ✅ Immer +1
+    })
+    console.log("✅ Produkt hinzugefügt!", product.title);  
+  }
 
-    localStorage.setItem("cart", JSON.stringify(cart));
-
+  localStorage.setItem("cart", JSON.stringify(cart))
+  console.log("📦 Cart gespeichert:", cart);  // ← NEU
     // Event für Cart Update auslösen
     window.dispatchEvent(new Event("cartUpdated"));
 
     setIsAddingToCart(true);
-    setTimeout(() => setIsAddingToCart(false), 1000);
+    setTimeout(() => setIsAddingToCart(false), 1500);
   };
 
   // Sterne Bewertung anzeigen - Vor dem return einfügen!
@@ -174,10 +178,10 @@ try {
           <Image
             // src={product.image_url}
             src={displayImageUrl}
-            alt={`${product.title} - Produktbild`}  
+            alt={`${product.title} - Produktbild`}
             fill
             unoptimized // WICHTIG: Stoppt die Next.js Bildprüfung für leere Dateien
-             loading="lazy"  // ← Statt "eager" für bessere Performance
+            loading="lazy" // ← Statt "eager" für bessere Performance
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
@@ -203,7 +207,9 @@ try {
             </div>
           ) : (
             // Unsichtbarer Platzhalter für ein sauberes Grid
-            <span className="text-xs text-gray-400 italic dark:text-gray-500">Noch keine Bewertungen</span>
+            <span className="text-xs text-gray-400 italic dark:text-gray-500">
+              Noch keine Bewertungen
+            </span>
           )}
         </div>
 

@@ -1,21 +1,33 @@
 // src/app/layout.tsx
 
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import NextAuthSessionProvider from "@/components/providers/SessionProvider"
-import Navbar from "@/components/ui/Navbar"
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import NextAuthSessionProvider from "@/components/providers/SessionProvider";
+import Navbar from "@/components/ui/Navbar";
+import { CartProvider } from "@/context/CartContext";
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  ),
   title: {
     default: "E-Shop | Moderner Online Shop",
-    template: "%s | E-Shop"
+    template: "%s | E-Shop",
   },
-  description: "Entdecke hochwertige Produkte zu besten Preisen. Kostenloser Versand ab 50€. 30 Tage Rückgaberecht.",
-  keywords: ["e-commerce", "shop", "produkte", "online shop", "kaufen", "elektronik", "mode"],
+  description:
+    "Entdecke hochwertige Produkte zu besten Preisen. Kostenloser Versand ab 50€. 30 Tage Rückgaberecht.",
+  keywords: [
+    "e-commerce",
+    "shop",
+    "produkte",
+    "online shop",
+    "kaufen",
+    "elektronik",
+    "mode",
+  ],
   authors: [{ name: "E-Shop Team" }],
   creator: "E-Shop",
   publisher: "E-Shop",
@@ -26,7 +38,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "E-Shop - Moderner Online Shop",
-    description: "Entdecke hochwertige Produkte zu besten Preisen. Kostenloser Versand ab 50€.",
+    description:
+      "Entdecke hochwertige Produkte zu besten Preisen. Kostenloser Versand ab 50€.",
     url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
     siteName: "E-Shop",
     images: [
@@ -64,23 +77,25 @@ export const metadata: Metadata = {
   alternates: {
     canonical: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   },
-}
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="de" suppressHydrationWarning>
       <body className={inter.className}>
         <NextAuthSessionProvider>
-          <Navbar />
-          <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            {children}
-          </main>
+          <CartProvider>
+            <Navbar />
+            <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+              {children}
+            </main>
+          </CartProvider>
         </NextAuthSessionProvider>
       </body>
     </html>
-  )
+  );
 }

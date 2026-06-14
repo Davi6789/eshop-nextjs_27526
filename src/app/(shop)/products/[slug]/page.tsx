@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react"
 import ReviewForm from "@/components/forms/ReviewForm"
 import ReviewList from "@/components/ui/ReviewList"
 
+
 interface Product {
   id: string
   title: string
@@ -66,7 +67,19 @@ export default function ProductDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+ } 
+
+  useEffect(() => {
+    loadProduct()
+}, [params.slug])
+
+  useEffect(() => {
+    if (product && session?.user?.id) {
+      checkWishlistStatus()
+    }
+  }, [product, session])
+
+  
 
   const loadRelatedProducts = async (category: string, productId: string) => {
     const { data } = await supabase
@@ -145,7 +158,7 @@ export default function ProductDetailPage() {
     window.dispatchEvent(new Event("cartUpdated"))
     
     setAddingToCart(true)
-    setTimeout(() => setAddingToCart(false), 1500)
+    setTimeout(() => setAddingToCart(false), 1000)
   }
 
   const updateQuantity = (delta: number) => {
