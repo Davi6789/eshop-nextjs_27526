@@ -1,84 +1,112 @@
- // src/app/api/coupons/validate/route.ts 
+// src/app/api/coupons/validate/route.ts
 
- import { supabase } from "@/lib/supabase/server"
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { code, cartTotal } = await request.json()
-
-    if (!code) {
-      return NextResponse.json({ error: "Code ist erforderlich" }, { status: 400 })
+    const body = await request.json();
+    const { code, cartTotal } = body;
+    
+    // Prüfe ob code existiert und ist ein String
+    if (!code || typeof code !== 'string') {
+      return NextResponse.json(
+        { error: "Bitte gib einen gültigen Gutscheincode ein" },
+        { status: 400 }
+      );
     }
-
-    // Coupon aus Datenbank holen
+    
+    // Code in Großbuchstaben umwandeln für Vergleich
+    const normalizedCode = code.toUpperCase().trim();
+    
+    console.log("Suche Coupon:", normalizedCode);
+    
+    // Coupon aus Datenbank suchen
     const { data: coupon, error } = await supabase
       .from("coupons")
       .select("*")
-      .eq("code", code.toUpperCase())
-      .eq("is_active", true)
-      .single()
-
+      .eq("code", normalizedCode)
+      .single();
+    
     if (error || !coupon) {
-      return NextResponse.json({ error: "Ungültiger Gutscheincode" }, { status: 404 })
+      console.log("Coupon nicht gefunden:", normalizedCode);
+      return NextResponse.json(
+        { error: "Ungültiger Gutscheincode" },
+        { status: 404 }
+      );
     }
-
-    // Prüfen ob Coupon noch gültig ist
-    const now = new Date()
-    const validFrom = new Date(coupon.valid_from)
-    const validUntil = coupon.valid_until ? new Date(coupon.valid_until) : null
-
-    if (now < validFrom) {
-      return NextResponse.json({ error: "Gutschein ist noch nicht gültig" }, { status: 400 })
+    
+    console.log("Coupon gefunden:", coupon);
+    
+    // Prüfe ob Coupon aktiv ist
+    if (!coupon.is_active) {
+      return NextResponse.json(
+        { error: "Dieser Gutschein ist nicht mehr gültig" },
+        { status: 400 }
+      );
     }
-
+    
+    // Prüfe Gültigkeitszeitraum
+    const now = new Date();
+    const validFrom = coupon.valid_from ? new Date(coupon.valid_from) : null;
+    const validUntil = coupon.valid_until ? new Date(coupon.valid_until) : null;
+    
+    if (validFrom && now < validFrom) {
+      return NextResponse.json(
+        { error: `Gutschein gültig ab ${validFrom.toLocaleDateString("de-DE")}` },
+        { status: 400 }
+      );
+    }
+    
     if (validUntil && now > validUntil) {
-      return NextResponse.json({ error: "Gutschein ist abgelaufen" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Dieser Gutschein ist abgelaufen" },
+        { status: 400 }
+      );
     }
-
-    // Prüfen ob Usage Limit erreicht
+    
+    // Prüfe Mindestbestellwert
+    if (coupon.min_order_amount && cartTotal < coupon.min_order_amount) {
+      return NextResponse.json(
+        { error: `Mindestbestellwert von ${coupon.min_order_amount}€ nicht erreicht (aktuell: ${cartTotal.toFixed(2)}€)` },
+        { status: 400 }
+      );
+    }
+    
+    // Prüfe Verwendungslimit
     if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
-      return NextResponse.json({ error: "Gutschein wurde bereits zu oft verwendet" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Dieser Gutschein wurde bereits maximal oft verwendet" },
+        { status: 400 }
+      );
     }
-
-    // Prüfen Mindestbestellwert
-    if (cartTotal < coupon.min_order_amount) {
-      const difference = coupon.min_order_amount - cartTotal
-      return NextResponse.json({ 
-        error: `Mindestbestellwert von ${coupon.min_order_amount}€ nicht erreicht. Noch ${difference.toFixed(2)}€ fehlen.` 
-      }, { status: 400 })
-    }
-
+    
     // Rabatt berechnen
-    let discountAmount = 0
-    if (coupon.discount_type === 'percentage') {
-      discountAmount = (cartTotal * coupon.discount_value) / 100
-      // Maximalrabatt begrenzen
+    let discountAmount = 0;
+    if (coupon.discount_type === "percentage") {
+      discountAmount = (cartTotal * coupon.discount_value) / 100;
       if (coupon.max_discount && discountAmount > coupon.max_discount) {
-        discountAmount = coupon.max_discount
+        discountAmount = coupon.max_discount;
       }
     } else {
-      // Fixed discount
-      discountAmount = coupon.discount_value
-      // Nicht unter 0
-      if (discountAmount > cartTotal) {
-        discountAmount = cartTotal
-      }
+      discountAmount = Math.min(coupon.discount_value, cartTotal);
     }
-
+    
+    // Erfolgreiche Antwort
     return NextResponse.json({
       valid: true,
-      coupon: {
-        code: coupon.code,
-        discount_type: coupon.discount_type,
-        discount_value: coupon.discount_value,
-        discount_amount: discountAmount,
-        min_order_amount: coupon.min_order_amount,
-        max_discount: coupon.max_discount
-      }
-    })
+      code: coupon.code,
+      discount_type: coupon.discount_type,
+      discount_value: coupon.discount_value,
+      discount_amount: discountAmount,
+      min_order_amount: coupon.min_order_amount
+    });
+    
   } catch (error) {
-    console.error("Coupon validation error:", error)
-    return NextResponse.json({ error: "Interner Serverfehler" }, { status: 500 })
+    console.error("Coupon validation error:", error);
+    return NextResponse.json(
+      { error: "Fehler bei der Gutscheinprüfung" },
+      { status: 500 }
+    );
   }
 }

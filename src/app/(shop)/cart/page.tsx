@@ -82,7 +82,7 @@ export default function CartPage() {
                     <span className="w-8 text-center">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      disabled={item.quantity >= item.stock}
+                      disabled={item.stock ? item.quantity >= item.stock : false}
                       className="w-8 h-8 rounded border hover:bg-gray-100 disabled:opacity-50"
                     >
                       +

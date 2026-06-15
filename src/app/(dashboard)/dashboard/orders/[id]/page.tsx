@@ -13,6 +13,7 @@ interface PageProps {
 }
 
 export default async function OrderDetailsPage({ params }: PageProps) {
+  const resolvedParams = await params  
   const session = await auth()
   
   if (!session) {
@@ -26,7 +27,7 @@ export default async function OrderDetailsPage({ params }: PageProps) {
       *,
       order_items (*)
     `)
-    .eq("id", params.id)
+    .eq("id", resolvedParams.id)  
     .eq("user_id", session.user.id)
     .single()
 

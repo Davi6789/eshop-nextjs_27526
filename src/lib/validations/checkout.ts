@@ -37,9 +37,10 @@ export const checkoutSchema = z.object({
     .min(2, "Land ist erforderlich"),
   
   // Zahlungsmethode
-  paymentMethod: z.enum(["paypal", "bank_transfer", "credit_card"], {
-    required_error: "Bitte wähle eine Zahlungsmethode",
-  }),
+  // paymentMethod: z.enum(["paypal", "bank_transfer", "credit_card"], {
+  //   required_error: "Bitte wähle eine Zahlungsmethode",
+  // }),
+  paymentMethod: z.enum(["paypal", "bank_transfer", "credit_card"]),
   
   // Zusätzliche Optionen
   differentBillingAddress: z.boolean().default(false),
