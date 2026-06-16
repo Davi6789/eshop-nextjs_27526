@@ -1,166 +1,238 @@
 //  src/app/admin/page.tsx
+"use client";
 
-import { auth } from "@/lib/auth/config"
-import { redirect } from "next/navigation"
-import { supabase } from "@/lib/supabase/server"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import StatsCard from "@/components/admin/StatsCard";
+import RevenueChart from "@/components/admin/RevenueChart";
 
-export default async function AdminDashboardPage() {
-  const session = await auth()
-  
-  // Prüfen ob User Admin ist
-  if (!session || session.user.role !== "admin") {
-    redirect("/login")
+export default function AdminDashboardPage() {
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    totalUsers: 0,
+    averageOrderValue: 0,
+  });
+  const [chartData, setChartData] = useState([]);
+  const [latestOrders, setLatestOrders] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      const res = await fetch("/api/admin/stats");
+      const data = await res.json();
+      setStats(data.stats);
+      setChartData(data.chartData);
+      setLatestOrders(data.latestOrders);
+      setTopProducts(data.topProducts);
+    } catch (error) {
+      console.error("Fehler beim Laden:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("de-DE", {
+      style: "currency",
+      currency: "EUR",
+    }).format(price);
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
-  // Statistiken aus der Datenbank holen
-  const { count: totalProducts } = await supabase
-    .from("products")
-    .select("*", { count: "exact", head: true })
-
-  const { count: totalOrders } = await supabase
-    .from("orders")
-    .select("*", { count: "exact", head: true })
-
-  const { count: totalUsers } = await supabase
-    .from("users")
-    .select("*", { count: "exact", head: true })
-
-  const { data: recentOrders } = await supabase
-    .from("orders")
-    .select(`
-      id,
-      order_number,
-      total_amount,
-      status,
-      created_at,
-      users (name, email)
-    `)
-    .order("created_at", { ascending: false })
-    .limit(5)
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-          Admin Dashboard
-        </h1>
+    <div>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
+        Dashboard
+      </h1>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Produkte</h3>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-              {totalProducts || 0}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatsCard
+          title="Gesamtumsatz"
+          value={formatPrice(stats.totalRevenue)}
+          icon="💰"
+          color="text-green-500"
+          change={12}
+        />
+        <StatsCard
+          title="Bestellungen"
+          value={stats.totalOrders}
+          icon="📦"
+          color="text-blue-500"
+          change={8}
+        />
+        <StatsCard
+          title="Produkte"
+          value={stats.totalProducts}
+          icon="🛍️"
+          color="text-purple-500"
+        />
+        <StatsCard
+          title="Kunden"
+          value={stats.totalUsers}
+          icon="👥"
+          color="text-orange-500"
+          change={15}
+        />
+      </div>
+
+      {/* Charts & Top Products */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Revenue Chart */}
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold mb-4">
+            Umsatzentwicklung (30 Tage)
+          </h2>
+          {chartData.length > 0 ? (
+            <RevenueChart data={chartData} />
+          ) : (
+            <p className="text-gray-500 text-center py-12">
+              Keine Daten verfügbar
             </p>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Bestellungen</h3>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-              {totalOrders || 0}
-            </p>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Benutzer</h3>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
-              {totalUsers || 0}
-            </p>
-          </div>
+          )}
         </div>
 
-        {/* Recent Orders */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Letzte Bestellungen
-            </h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Bestellnummer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Kunde
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Betrag
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Datum
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {recentOrders?.map((order: any) => (
-                  <tr key={order.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      #{order.order_number}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {order.users?.name || order.users?.email || "Unbekannt"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      €{order.total_amount}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        order.status === "completed" 
-                          ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                          : order.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-                          : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                      }`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(order.created_at).toLocaleDateString("de-DE")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Schnellzugriff
-            </h3>
-            <div className="space-y-2">
-              <a href="/admin/products" className="block text-blue-600 hover:text-blue-500">
-                → Produkte verwalten
-              </a>
-              <a href="/admin/orders" className="block text-blue-600 hover:text-blue-500">
-                → Alle Bestellungen
-              </a>
-              <a href="/admin/users" className="block text-blue-600 hover:text-blue-500">
-                → Benutzer verwalten
-              </a>
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Admin Info
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Eingeloggt als: <strong>{session.user?.email}</strong>
-            </p>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Rolle: <span className="text-blue-600 font-semibold">Administrator</span>
-            </p>
+        {/* Top Products */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold mb-4">Top Produkte</h2>
+          <div className="space-y-3">
+            {topProducts.map((product: any, index: number) => (
+              <div
+                key={product.id}
+                className="flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">#{index + 1}</span>
+                  <span className="font-medium line-clamp-1">
+                    {product.name}
+                  </span>
+                </div>
+                <span className="text-blue-600 font-semibold">
+                  {product.quantity} verkauft
+                </span>
+              </div>
+            ))}
+            {topProducts.length === 0 && (
+              <p className="text-gray-500 text-center py-4">
+                Keine Verkaufsdaten
+              </p>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Latest Orders */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold">Letzte Bestellungen</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Bestellnummer
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Kunde
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Datum
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Betrag
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {latestOrders.map((order: any) => (
+                <tr
+                  key={order.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <td className="px-6 py-4 font-mono text-sm">
+                    #{order.order_number}
+                  </td>
+                  <td className="px-6 py-4">
+                    {order.users?.name || order.users?.email}
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    {formatDate(order.created_at)}
+                  </td>
+                  <td className="px-6 py-4 font-medium">
+                    {formatPrice(order.total_amount)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-2 py-1 text-xs rounded-full ${
+                        order.status === "paid"
+                          ? "bg-green-100 text-green-800"
+                          : order.status === "processing"
+                            ? "bg-blue-100 text-blue-800"
+                            : order.status === "shipped"
+                              ? "bg-purple-100 text-purple-800"
+                              : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {order.status === "paid"
+                        ? "Bezahlt"
+                        : order.status === "processing"
+                          ? "In Bearbeitung"
+                          : order.status === "shipped"
+                            ? "Versendet"
+                            : "Ausstehend"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {latestOrders.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
+                    Keine Bestellungen vorhanden
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <div className="p-4 border-t text-center">
+          <Link
+            href="/admin/orders"
+            className="text-blue-600 hover:text-blue-800"
+          >
+            Alle Bestellungen anzeigen →
+          </Link>
+        </div>
+      </div>
     </div>
-  )
+  );
 }

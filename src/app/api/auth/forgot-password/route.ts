@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
-// import nodemailer from "nodemailer";
+import nodemailer from "nodemailer";
 
 // Supabase Client
 const supabase = createClient(
@@ -12,12 +12,12 @@ const supabase = createClient(
 );
 
 // Nodemailer Transporter für Gmail
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {user: process.env.GMAIL_USER,      // Holt sich deine E-Mail aus .env.local
-//     pass: process.env.GMAIL_APP_PASSWORD,  // Holt sich dein Passwort aus .env.local
-//   },
-// });
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {user: process.env.GMAIL_USER,      // Holt sich deine E-Mail aus .env.local
+    pass: process.env.GMAIL_APP_PASSWORD,  // Holt sich dein Passwort aus .env.local
+  },
+});
 
 // E-Mail Template
 function getPasswordResetEmailHTML(resetLink: string, email: string): string {
@@ -159,8 +159,8 @@ Dein E-Shop Team
         `,
       };
 
-     // const info = await transporter.sendMail(mailOptions);
-     // console.log("✅ E-Mail versendet:", info.response);
+      const info = await transporter.sendMail(mailOptions);
+      console.log("✅ E-Mail versendet:", info.response);
 
       return NextResponse.json(
         {

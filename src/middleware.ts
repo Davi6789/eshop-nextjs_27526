@@ -8,7 +8,7 @@ export default auth((req) => {
   const isAdmin = req.auth?.user?.role === "admin";
   const path = req.nextUrl.pathname;
 
-  // Admin Routes schützen
+  // Admin Routes schützen (nur Admin)
   if (path.startsWith("/admin") && !isAdmin) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
@@ -25,6 +25,9 @@ export default auth((req) => {
 
     // Wenn eingeloggt und auf login/register Seite -> redirect zu dashboard
   if (isLoggedIn && (path === "/login" || path === "/register")) {
+    if (isAdmin && path === "/login") {
+      return NextResponse.redirect(new URL("/admin", req.url))
+    }
     return NextResponse.redirect(new URL("/dashboard", req.url))
   }
 
