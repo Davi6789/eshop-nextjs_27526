@@ -1,9 +1,10 @@
- //    src/components/admin/ProductForm.tsx
+// src/components/admin/ProductForm.tsx
 
- "use client"
+"use client"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import ImageUpload from "./ImageUpload"
 
 interface ProductFormProps {
   product?: any
@@ -14,6 +15,7 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [imageUrls, setImageUrls] = useState<string[]>(product?.images || (product?.image_url ? [product.image_url] : []))
   
   const [formData, setFormData] = useState({
     title: product?.title || "",
@@ -24,7 +26,7 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
     discount_until: product?.discount_until?.split("T")[0] || "",
     category: product?.category || "",
     stock: product?.stock || 0,
-    image_url: product?.image_url || "",
+    images: product?.images || [],
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -42,21 +44,35 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
     setFormData({ ...formData, slug })
   }
 
+  // ✅ Image Upload Handler
+  const handleImageUpload = (url: string) => {
+    setImageUrls(prev => [...prev, url])
+    setFormData(prev => ({ ...prev, images: [...prev.images, url] }))
+  }
+
+  // ✅ Image Remove Handler
+  const handleImageRemove = (url: string) => {
+    setImageUrls(prev => prev.filter(u => u !== url))
+    setFormData(prev => ({ ...prev, images: prev.images.filter((i: string) => i !== url) }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
 
     try {
-      const url = isEditing ? `/api/admin/products` : `/api/admin/products`
+      const url = isEditing ? `/api/admin/products/${product?.id}` : "/api/admin/products"
       const method = isEditing ? "PUT" : "POST"
       
       const payload = {
         ...formData,
         id: product?.id,
-        price: parseFloat(formData.price),
-        discount_price: formData.discount_price ? parseFloat(formData.discount_price) : null,
-        stock: parseInt(formData.stock.toString()),
+        price: parseFloat(formData.price as string),
+        discount_price: formData.discount_price ? parseFloat(formData.discount_price as string) : null,
+        stock: parseInt(formData.stock as string),
+        images: imageUrls,
+        image_url: imageUrls[0] || null, // Hauptbild ist das erste
       }
 
       const res = await fetch(url, {
@@ -209,23 +225,34 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
           />
         </div>
 
-        {/* Image URL */}
+        {/* Image Upload Bereich - NEU */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium mb-1">Bild URL</label>
-          <input
-            type="url"
-            name="image_url"
-            value={formData.image_url}
-            onChange={handleChange}
-            placeholder="https://example.com/image.jpg"
-            className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"
+          <label className="block text-sm font-medium mb-2">Produktbilder</label>
+          <ImageUpload
+            onUpload={handleImageUpload}
+            onRemove={handleImageRemove}
+            multiple={true}
+            existingImages={imageUrls}
           />
-          {formData.image_url && (
-            <div className="mt-2">
-              <img src={formData.image_url} alt="Vorschau" className="h-20 object-cover rounded" />
-            </div>
-          )}
+          <p className="text-xs text-gray-500 mt-2">
+            Du kannst mehrere Bilder hochladen (max. 5MB pro Bild)
+          </p>
         </div>
+
+        {/* Image Preview (falls keine ImageUpload Komponente vorhanden) */}
+        {imageUrls.length === 0 && !formData.images.length && (
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1">Bild URL (Fallback)</label>
+            <input
+              type="url"
+              name="image_url"
+              value={formData.image_url || ""}
+              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              placeholder="https://example.com/image.jpg"
+              className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex gap-4">
