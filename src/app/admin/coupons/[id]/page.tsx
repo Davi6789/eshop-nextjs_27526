@@ -1,4 +1,4 @@
-// src/app/admin/coupons/[id]/page.tsx 
+// src/app/admin/coupons/[id]/page.tsx
 
 "use client"
 
@@ -12,12 +12,14 @@ export default function EditCouponPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadCoupon()
-  }, [params.id])
+    if (params?.id) {
+      loadCoupon()
+    }
+  }, [params?.id])
 
   const loadCoupon = async () => {
     try {
-      const res = await fetch(`/api/admin/coupons?id=${params.id}`)
+      const res = await fetch(`/api/admin/coupons/${params.id}`)
       const data = await res.json()
       setCoupon(data)
     } catch (error) {
