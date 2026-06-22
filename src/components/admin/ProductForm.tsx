@@ -1,22 +1,27 @@
 // src/components/admin/ProductForm.tsx
 
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import ImageUpload from "./ImageUpload"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import ImageUpload from "./ImageUpload";
 
 interface ProductFormProps {
-  product?: any
-  isEditing?: boolean
+  product?: any;
+  isEditing?: boolean;
 }
 
-export default function ProductForm({ product, isEditing = false }: ProductFormProps) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [imageUrls, setImageUrls] = useState<string[]>(product?.images || (product?.image_url ? [product.image_url] : []))
-  
+export default function ProductForm({
+  product,
+  isEditing = false,
+}: ProductFormProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [imageUrls, setImageUrls] = useState<string[]>(
+    product?.images || (product?.image_url ? [product.image_url] : []),
+  );
+
   const [formData, setFormData] = useState({
     title: product?.title || "",
     slug: product?.slug || "",
@@ -27,73 +32,85 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
     category: product?.category || "",
     stock: product?.stock || 0,
     images: product?.images || [],
-  })
+    image_url: product?.image_url || "",
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const generateSlug = () => {
     const slug = formData.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")
-    setFormData({ ...formData, slug })
-  }
+      .replace(/^-|-$/g, "");
+    setFormData({ ...formData, slug });
+  };
 
   // ✅ Image Upload Handler
   const handleImageUpload = (url: string) => {
-    setImageUrls(prev => [...prev, url])
-    setFormData(prev => ({ ...prev, images: [...prev.images, url] }))
-  }
+    setImageUrls((prev) => [...prev, url]);
+    setFormData((prev) => ({ ...prev, images: [...prev.images, url] }));
+  };
 
   // ✅ Image Remove Handler
   const handleImageRemove = (url: string) => {
-    setImageUrls(prev => prev.filter(u => u !== url))
-    setFormData(prev => ({ ...prev, images: prev.images.filter((i: string) => i !== url) }))
-  }
+    setImageUrls((prev) => prev.filter((u) => u !== url));
+    setFormData((prev) => ({
+      ...prev,
+      images: prev.images.filter((i: string) => i !== url),
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
-      const url = isEditing ? `/api/admin/products/${product?.id}` : "/api/admin/products"
-      const method = isEditing ? "PUT" : "POST"
-      
+      const url = isEditing
+        ? `/api/admin/products/${product?.id}`
+        : "/api/admin/products";
+      const method = isEditing ? "PUT" : "POST";
+
       const payload = {
         ...formData,
         id: product?.id,
         price: parseFloat(formData.price as string),
-        discount_price: formData.discount_price ? parseFloat(formData.discount_price as string) : null,
+        discount_price: formData.discount_price
+          ? parseFloat(formData.discount_price as string)
+          : null,
         stock: parseInt(formData.stock as string),
         images: imageUrls,
         image_url: imageUrls[0] || null, // Hauptbild ist das erste
-      }
+      };
 
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      })
+      });
 
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Fehler beim Speichern")
+        const data = await res.json();
+        throw new Error(data.error || "Fehler beim Speichern");
       }
 
-      router.push("/admin/products")
-      router.refresh()
+      router.push("/admin/products");
+      router.refresh();
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -168,7 +185,9 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
 
         {/* Discount Price */}
         <div>
-          <label className="block text-sm font-medium mb-1">Rabattpreis (€)</label>
+          <label className="block text-sm font-medium mb-1">
+            Rabattpreis (€)
+          </label>
           <input
             type="number"
             name="discount_price"
@@ -181,7 +200,9 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
 
         {/* Discount Until */}
         <div>
-          <label className="block text-sm font-medium mb-1">Rabatt gültig bis</label>
+          <label className="block text-sm font-medium mb-1">
+            Rabatt gültig bis
+          </label>
           <input
             type="date"
             name="discount_until"
@@ -227,7 +248,9 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
 
         {/* Image Upload Bereich - NEU */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium mb-2">Produktbilder</label>
+          <label className="block text-sm font-medium mb-2">
+            Produktbilder
+          </label>
           <ImageUpload
             onUpload={handleImageUpload}
             onRemove={handleImageRemove}
@@ -242,12 +265,16 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
         {/* Image Preview (falls keine ImageUpload Komponente vorhanden) */}
         {imageUrls.length === 0 && !formData.images.length && (
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium mb-1">Bild URL (Fallback)</label>
+            <label className="block text-sm font-medium mb-1">
+              Bild URL (Fallback)
+            </label>
             <input
               type="url"
               name="image_url"
               value={formData.image_url || ""}
-              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, image_url: e.target.value })
+              }
               placeholder="https://example.com/image.jpg"
               className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"
             />
@@ -261,7 +288,11 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
           disabled={loading}
           className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? "Wird gespeichert..." : isEditing ? "Aktualisieren" : "Erstellen"}
+          {loading
+            ? "Wird gespeichert..."
+            : isEditing
+              ? "Aktualisieren"
+              : "Erstellen"}
         </button>
         <button
           type="button"
@@ -272,5 +303,5 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
         </button>
       </div>
     </form>
-  )
+  );
 }

@@ -19,12 +19,15 @@ export default function AdminOrderDetailPage() {
   const [trackingNumber, setTrackingNumber] = useState("")
   const [trackingUrl, setTrackingUrl] = useState("")
   const [notes, setNotes] = useState("")
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     loadOrder()
   }, [params.id])
 
   const loadOrder = async () => {
+    if (!params?.id) return
+    
     const { data: orderData } = await supabase
       .from("orders")
       .select(`
@@ -77,6 +80,30 @@ export default function AdminOrderDetailPage() {
       alert("Fehler beim Aktualisieren")
     } finally {
       setUpdating(false)
+    }
+  }
+
+  // ✅ PDF Download Funktion
+  const downloadPDF = async () => {
+    setDownloading(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/pdf`)
+      if (!res.ok) throw new Error("PDF konnte nicht erstellt werden")
+      
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `Rechnung_${order.order_number}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("PDF Download Error:", error)
+      alert("Fehler beim Generieren der PDF")
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -236,12 +263,52 @@ export default function AdminOrderDetailPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium mb-1">Tracking URL</label>
+                <input
+                  type="url"
+                  value={trackingUrl}
+                  onChange={(e) => setTrackingUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Notizen (intern)</label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Interne Notizen zur Bestellung..."
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"
+                />
+              </div>
+
               <button
                 onClick={updateOrderStatus}
                 disabled={updating}
                 className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
                 {updating ? "Wird gespeichert..." : "Status aktualisieren"}
+              </button>
+
+              {/* ✅ PDF Download Button */}
+              <button
+                onClick={downloadPDF}
+                disabled={downloading}
+                className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
+              >
+                {downloading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Wird generiert...
+                  </>
+                ) : (
+                  <>
+                    📄 Rechnung (PDF)
+                  </>
+                )}
               </button>
             </div>
           </div>

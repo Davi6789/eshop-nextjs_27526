@@ -8,6 +8,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }  // ← Promise Typ
 ) {
+  const { id } = await params
   const session = await auth()
     
   // Admin-Check
