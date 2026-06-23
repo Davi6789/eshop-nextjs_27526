@@ -6,7 +6,8 @@ import "./globals.css";
 import NextAuthSessionProvider from "@/components/providers/SessionProvider";
 import Navbar from "@/components/ui/Navbar";
 import { CartProvider } from "@/context/CartContext";
-import Footer from "@/components/ui/Footer"
+import { WishlistProvider } from "@/context/WishlistContext";
+import Footer from "@/components/ui/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -90,11 +91,13 @@ export default function RootLayout({
       <body className={inter.className}>
         <NextAuthSessionProvider>
           <CartProvider>
-            <Navbar />
-            <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-              {children}
-            </main>
-          <Footer /> 
+            <WishlistProvider>
+              <Navbar />
+              <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+                {children}
+              </main>
+              <Footer />
+            </WishlistProvider>
           </CartProvider>
         </NextAuthSessionProvider>
       </body>

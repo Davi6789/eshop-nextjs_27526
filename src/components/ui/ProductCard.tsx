@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useSession } from "next-auth/react";
 import CountdownTimer from "./CountdownTimer";
+import WishlistButton from "./WishlistButton";
 
 interface ProductCardProps {
   product: {
@@ -100,25 +101,25 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (!product) return;
 
     // Temporärer Cart - später mit Context
-  const cart = JSON.parse(localStorage.getItem("cart") || "[]")
-  const existingItem = cart.find((item: any) => item.id === product.id)
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const existingItem = cart.find((item: any) => item.id === product.id);
 
-  if (existingItem) {
-    existingItem.quantity += 1  // ✅ Immer +1
-    console.log("✅ Menge erhöht:", existingItem);  // ← NEU
-  } else {
-    cart.push({
-      id: product.id,
-      title: product.title,
-      price: product.current_price,
-      image: product.images?.[0],
-      quantity:  1,  // ✅ Immer +1
-    })
-    console.log("✅ Produkt hinzugefügt!", product.title);  
-  }
+    if (existingItem) {
+      existingItem.quantity += 1; // ✅ Immer +1
+      console.log("✅ Menge erhöht:", existingItem); // ← NEU
+    } else {
+      cart.push({
+        id: product.id,
+        title: product.title,
+        price: product.current_price,
+        image: product.images?.[0],
+        quantity: 1, // ✅ Immer +1
+      });
+      console.log("✅ Produkt hinzugefügt!", product.title);
+    }
 
-  localStorage.setItem("cart", JSON.stringify(cart))
-  console.log("📦 Cart gespeichert:", cart);  // ← NEU
+    localStorage.setItem("cart", JSON.stringify(cart));
+    console.log("📦 Cart gespeichert:", cart); // ← NEU
     // Event für Cart Update auslösen
     window.dispatchEvent(new Event("cartUpdated"));
 
@@ -164,13 +165,18 @@ export default function ProductCard({ product }: ProductCardProps) {
       )}
 
       {/* Wishlist Button */}
-      <button
+      {/* <button
         onClick={toggleWishlist}
         className="absolute top-2 right-2 z-10 bg-white dark:bg-gray-800 rounded-full p-2 shadow-md hover:scale-110 transition"
       >
         <span className="text-xl">{isInWishlist ? "❤️" : "🤍"}</span>
-      </button>
+      </button> */}
 
+      {/* DURCH NEUEN BUTTON: */}
+      <div className="absolute top-2 right-2 z-10">
+        <WishlistButton productId={product.id} size="md" />
+      </div>
+      
       {/* Product Image */}
       <Link href={`/products/${product.slug}`} className="block relative z-0">
         <div className="relative h-64 bg-gray-200 dark:bg-gray-700 overflow-hidden">
@@ -181,7 +187,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             alt={`${product.title} - Produktbild`}
             fill
             unoptimized // WICHTIG: Stoppt die Next.js Bildprüfung für leere Dateien
-            loading="lazy" // ← Statt "eager" für bessere Performance
+            loading="eager" // ← Statt "eager" für bessere Performance ich ändere auf eager statt lazy
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
