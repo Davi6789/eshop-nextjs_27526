@@ -6,6 +6,7 @@ import "./globals.css";
 import NextAuthSessionProvider from "@/components/providers/SessionProvider";
 import Navbar from "@/components/ui/Navbar";
 import { CartProvider } from "@/context/CartContext";
+import Footer from "@/components/ui/Footer"
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -93,6 +94,7 @@ export default function RootLayout({
             <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
               {children}
             </main>
+          <Footer /> 
           </CartProvider>
         </NextAuthSessionProvider>
       </body>
