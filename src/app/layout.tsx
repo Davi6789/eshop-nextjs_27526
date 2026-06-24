@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     "kaufen",
     "elektronik",
     "mode",
+    "computer", "gaming"
   ],
   authors: [{ name: "E-Shop Team" }],
   creator: "E-Shop",
@@ -60,6 +61,8 @@ export const metadata: Metadata = {
     title: "E-Shop - Moderner Online Shop",
     description: "Entdecke hochwertige Produkte zu besten Preisen",
     images: ["/og-image.jpg"],
+    creator: "@eshop",
+    site: "@eshop",
   },
   robots: {
     index: true,
@@ -72,6 +75,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  // alternates: {
+  //   canonical: "https://eshop.com",
+  // },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION || "",
   },
