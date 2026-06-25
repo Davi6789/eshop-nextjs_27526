@@ -12,6 +12,8 @@ interface OptimizedImageProps {
   className?: string
   sizes?: string
   priority?: boolean
+  width?: number
+  height?: number
 }
 
 export default function OptimizedImage({ 
@@ -20,9 +22,13 @@ export default function OptimizedImage({
   fill = false, 
   className = "",
   sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
-  priority = false
+  priority = false,
+  width,
+  height
+
 }: OptimizedImageProps) {
   const [error, setError] = useState(false)
+  const [loaded, setLoaded] = useState(false)
 
   if (!src || error) {
     return (
@@ -32,16 +38,28 @@ export default function OptimizedImage({
     )
   }
 
+  // Lazy Loading Strategie
+  const loadingStrategy = priority ? "eager" : "lazy"
+
   return (
-    <Image
-      src={src}
-      alt={alt}
-      fill={fill}
-      className={`object-cover ${className}`}
-      sizes={sizes}
-      priority={priority}
-      loading={priority ? "eager" : "lazy"}
-      onError={() => setError(true)}
+    <div className="relative w-full h-full">
+      {!loaded && (
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse" />
+      )}
+      <Image
+        src={src}
+        alt={alt}
+        fill={fill}
+        width={!fill ? width : undefined}
+        height={!fill ? height : undefined}
+        className={`object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"} ${className}`}
+        sizes={sizes}
+        priority={priority}
+        loading={loadingStrategy}
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+        quality={80}
     />
+    </div>
   )
 }

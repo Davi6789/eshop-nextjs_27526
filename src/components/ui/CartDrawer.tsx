@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import CouponInput from "./CouponInput";
@@ -30,6 +30,10 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [couponError, setCouponError] = useState<string>("");
+  const drawerRef = useRef<HTMLDivElement>(null)
+  const [startX, setStartX] = useState(0)
+  const [isDragging, setIsDragging] = useState(false);
+  const [offsetX, setOffsetX] = useState(0);
 
   // Gesamtpreis ohne Rabatt
   const getTotalPrice = () => {
@@ -128,13 +132,68 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
     setCouponError("");
   };
 
+  // ✅ Swipe to Close - Touch Events
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      setStartX(touch.clientX);
+      setIsDragging(false);
+      setOffsetX(0);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const diff = startX - touch.clientX;
+      
+      // Nur wenn nach links gewischt wird (diff > 0)
+      if (diff > 0) {
+        setIsDragging(true);
+        setOffsetX(Math.min(diff, 200)); // Max 200px Offset
+      }
+    };
+
+    const handleTouchEnd = () => {
+      // Wenn mehr als 80px gewischt wurde, Drawer schließen
+      if (offsetX > 80) {
+        onClose();
+      }
+      
+      // Reset
+      setIsDragging(false);
+      setOffsetX(0);
+    };
+
+    const drawerElement = drawerRef.current;
+    if (drawerElement) {
+      drawerElement.addEventListener("touchstart", handleTouchStart);
+      drawerElement.addEventListener("touchmove", handleTouchMove);
+      drawerElement.addEventListener("touchend", handleTouchEnd);
+    }
+
+    return () => {
+      if (drawerElement) {
+        drawerElement.removeEventListener("touchstart", handleTouchStart);
+        drawerElement.removeEventListener("touchmove", handleTouchMove);
+        drawerElement.removeEventListener("touchend", handleTouchEnd);
+      }
+    };
+  }, [startX, offsetX, onClose]);
+
   return (
-    <div className="fixed inset-0 z-40">
+    <div className="fixed inset-0 z-[100] flex justify-end">
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/50" onClick={onClose}></div>
 
-      {/* Drawer */}
-      <div className="absolute right-0 top-0 h-full w-full sm:w-96 bg-white dark:bg-gray-800 shadow-xl overflow-y-auto">
+      {/* Drawer - mit Swipe-Animation */}
+      <div 
+        ref={drawerRef}
+        className="relative h-full w-full sm:w-96 bg-white dark:bg-gray-800 shadow-xl overflow-y-auto transition-transform duration-300"
+        style={{
+          transform: isDragging ? `translateX(${offsetX}px)` : "translateX(0)",
+          transition: isDragging ? "none" : "transform 0.3s ease-out"
+        }}
+      >
+
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 z-10">
           <div className="flex justify-between items-center">
@@ -148,6 +207,10 @@ export default function CartDrawer({ onClose }: CartDrawerProps) {
               ✕
             </button>
           </div>
+          {/* Swipe-Hinweis */}
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 text-center sm:hidden">
+            👈 Zum Schließen nach links wischen
+          </p>
         </div>
 
         {/* Items */}

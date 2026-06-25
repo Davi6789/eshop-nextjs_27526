@@ -23,14 +23,15 @@
   --font-mono: var(--font-geist-mono);
 }
 
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Dark Mode Scrollbar */
+/* ============================================
+   DARK MODE SCROLLBAR
+   ============================================ */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -60,8 +61,9 @@ body {
   background: #6b7280;
 }
 
-
-/* Animationen */
+/* ============================================
+   ANIMATIONEN
+   ============================================ */
 @keyframes slide-in {
   from {
     transform: translateX(100%);
@@ -75,8 +77,113 @@ body {
   animation: slide-in 0.3s ease-out;
 }
 
-/* body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-} */
+/* ============================================
+   SAFE AREA FÜR MODERNE SMARTPHONES
+   ============================================ */
+@supports (padding: max(0px)) {
+  .h-safe-bottom {
+    height: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .pt-safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .pb-safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  /* Für iOS Notch-Devices */
+  .min-h-safe {
+    min-height: calc(100vh - env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ============================================
+   iOS INPUT ZOOM VERHINDERN
+   ============================================ */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* ============================================
+   BESSERE TOUCH-ZIELE AUF MOBILE
+   ============================================ */
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+/* ============================================
+   VERHINDERT UNGEWOLLTES SCROLLEN BEIM SWIPEN
+   ============================================ */
+.no-scroll {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* ============================================
+   SMOOTH SCROLLING
+   ============================================ */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ============================================
+   SELECTION FARBE
+   ============================================ */
+::selection {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.dark ::selection {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* ============================================
+   FOCUS STYLES FÜR BARRIEREFREIHEIT
+   ============================================ */
+*:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* ============================================
+   DARK MODE FÜR PLACEHOLDER
+   ============================================ */
+.dark ::placeholder {
+  color: #6b7280;
+}
+
+/* ============================================
+   MOBILE FIRST OPTIMIERUNGEN
+   ============================================ */
+@media (max-width: 640px) {
+  /* Verhindert horizontales Scrollen */
+  body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  /* Bessere Touch-Ziele auf mobilen Geräten */
+  button,
+  a,
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Fallback für System Dark Mode */
+  :root:not(.light) {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}

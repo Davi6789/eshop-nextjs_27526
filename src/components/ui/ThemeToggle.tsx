@@ -1,3 +1,5 @@
+// src/components/ui/ThemeToggle.tsx
+
 "use client"
 
 import { useTheme } from "next-themes"
@@ -9,37 +11,21 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true)
-   }, [])
+  }, [])
 
   if (!mounted) {
-    return (
-      <button className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 w-9 h-9 animate-pulse" />
-    )
-  }
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
+    return <button className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 w-9 h-9 animate-pulse" />
   }
 
   return (
     <button
-      onClick={toggleTheme}
+      //onClick={toggleTheme}
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className="relative p-2 rounded-lg transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-700"
       aria-label="Dark Mode umschalten"
     >
-      {theme === "dark" ? (
-        <span className="text-xl transition-transform duration-500 rotate-0">
-          🌙
-        </span>
-      ) : (
-        <span className="text-xl transition-transform duration-500 rotate-0">
-          ☀️
-        </span>
-      )}
-      
-      {/* Tooltip */}
-      <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
-        {theme === "dark" ? "Light Mode" : "Dark Mode"}
+      <span className="text-xl transition-transform duration-500">
+        {theme === "dark" ? "🌙" : "☀️"}
       </span>
     </button>
   )
