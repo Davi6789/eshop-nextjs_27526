@@ -3,7 +3,12 @@
 import { supabase } from "@/lib/supabase/server";
 import { auth } from "@/lib/auth/config";
 import { NextRequest, NextResponse } from "next/server";
-import { sendOrderConfirmationEmail } from "@/lib/email/send-email";
+// import { sendOrderConfirmationEmail } from "@/lib/email/send-email";
+import { sendEmail } from "@/lib/email/email-service";
+import {
+  orderConfirmationEmail,
+  adminNewOrderEmail,
+} from "@/lib/email/templates";
 
 // Bestellung erstellen
 export async function POST(request: NextRequest) {
@@ -17,21 +22,31 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       orderData,
-      items,
+      items: rawItems,
       totalAmount,
       discountAmount,
       appliedCoupon,
       paymentMethod,
     } = body;
 
+    // Define item type to avoid using `any`
+    type OrderItemInput = {
+      id: string | number;
+      title: string;
+      quantity: number;
+      price: number;
+    };
+
+    const items: OrderItemInput[] = rawItems || [];
+
     // Validierung
     if (!items || items.length === 0) {
       return NextResponse.json(
         { error: "Keine Artikel im Warenkorb" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     // Vollständiger Name
     const fullName = `${orderData.firstName} ${orderData.lastName}`;
 
@@ -52,8 +67,8 @@ export async function POST(request: NextRequest) {
         payment_method: paymentMethod,
         payment_status: "pending",
         shipping_address: fullAddress,
-        shipping_city: orderData.city,
         shipping_zip: orderData.zipCode,
+        shipping_city: orderData.city,
         shipping_country: orderData.country,
       })
       .select()
@@ -68,7 +83,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Order Items speichern
-    const orderItems = items.map((item: any) => ({
+    const orderItems = items.map((item: OrderItemInput) => ({
       order_id: order.id,
       product_id: item.id,
       product_name: item.title,
@@ -134,43 +149,85 @@ export async function POST(request: NextRequest) {
     const customerEmail = customer?.email || orderData.email;
     const customerName = customer?.name || fullName;
 
-    // Email mit PDF-Rechnung senden (optional, nicht kritisch für Bestellung)
-     try {
-    await sendOrderConfirmationEmail({
-
-        order: {
-          id: order.id,
-          order_number: orderNumber,
-          total_amount: totalAmount,
-          created_at: new Date().toISOString(),
-          status: "pending",
-          payment_method: paymentMethod,
-          payment_status: "pending",
-          shipping_address: fullAddress,
-          shipping_city: orderData.city,
-          shipping_zip: orderData.zipCode,
-          shipping_country: orderData.country,
-        },
-        orderItems: orderItems.map((item: any) => ({
-          product_name: item.product_name,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        customer: {
-          name: customerName,
-          email: customerEmail,
-        },
-        discountAmount: discountAmount || 0,
-        appliedCoupon: appliedCoupon?.code || null,
+    // Kunden-Bestellbestätigungs-Email
+    try {
+      const customerEmailTemplate = orderConfirmationEmail(
+        order,
+        orderItems,
+        customerName,
+      );
+      const customerEmailResult = await sendEmail({
+        to: customerEmail,
+        subject: customerEmailTemplate.subject,
+        html: customerEmailTemplate.html,
       });
-      console.log(`Bestätigungs-E-Mail an ${customerEmail} gesendet`);
+
+      if (customerEmailResult.success) {
+        console.log(`Bestellbestätigung an ${customerEmail} gesendet`);
+      } else {
+        console.error(
+          "Kunden-Email fehlgeschlagen:",
+          customerEmailResult.error,
+        );
+      }
     } catch (emailError) {
-      // Email Fehler loggen, aber Bestellung nicht abbrechen
-      console.error("Email sending failed:", emailError);
+      console.error("Kunden-Email Fehler:", emailError);
     }
 
-    // Warenkorb leeren
-    // (Client-seitig)
+    // Email mit PDF-Rechnung senden (optional, nicht kritisch für Bestellung)
+    //  try {
+    // await sendOrderConfirmationEmail({
+
+    //     order: {
+    //       id: order.id,
+    //       order_number: orderNumber,
+    //       total_amount: totalAmount,
+    //       created_at: new Date().toISOString(),
+    //       status: "pending",
+    //       payment_method: paymentMethod,
+    //       payment_status: "pending",
+    //       shipping_address: fullAddress,
+    //       shipping_city: orderData.city,
+    //       shipping_zip: orderData.zipCode,
+    //       shipping_country: orderData.country,
+    //     },
+    //     orderItems: orderItems.map((item: any) => ({
+    //       product_name: item.product_name,
+    //       quantity: item.quantity,
+    //       price: item.price,
+    //     })),
+    //     customer: {
+    //       name: customerName,
+    //       email: customerEmail,
+    //     },
+    //     discountAmount: discountAmount || 0,
+    //     appliedCoupon: appliedCoupon?.code || null,
+    //   });
+    //   console.log(`Bestätigungs-E-Mail an ${customerEmail} gesendet`);
+    // ✅  Optional: Admin-Benachrichtigungs-Email 
+    try {
+      const adminEmailTemplate = adminNewOrderEmail(
+        { ...order, order_number: orderNumber, total_amount: totalAmount },
+        { name: fullName, email: customerEmail, address: fullAddress },
+      );
+
+      const adminEmailResult = await sendEmail({
+        to: process.env.ADMIN_EMAIL || "admin@eshop.com",
+        subject: adminEmailTemplate.subject,
+        html: adminEmailTemplate.html,
+      });
+
+      if (adminEmailResult.success) {
+        console.log(`Admin-Benachrichtigung gesendet`);
+      } else {
+        console.error("Admin-Email fehlgeschlagen:", adminEmailResult.error);
+      }
+    } catch (emailError) {
+      // Email Fehler loggen, aber Bestellung nicht abbrechen
+      console.error("Admin-Email sending failed:", emailError);
+    }
+
+    // Warenkorb leeren (Client-seitig) Erfolgreiche Antwort
     return NextResponse.json({
       success: true,
       orderId: order.id,
@@ -181,8 +238,7 @@ export async function POST(request: NextRequest) {
     console.error("Checkout Error:", error);
     return NextResponse.json(
       { error: "Interner Serverfehler" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-// Optional: Admin Benachrichtigung (kann später hinzugefügt werden)

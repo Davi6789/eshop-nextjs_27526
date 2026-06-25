@@ -5,6 +5,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase/client"
+import { sendEmail } from "@/lib/email/email-service"
+import { passwordResetEmail } from "@/lib/email/templates"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -17,37 +19,20 @@ export default function ForgotPasswordPage() {
     setMessage(null)
 
     try {
-      // Hier generieren wir einen Reset-Token und speichern ihn in der DB
-      const resetToken = Math.random().toString(36).substring(2, 15)
-      const expiresAt = new Date()
-      expiresAt.setHours(expiresAt.getHours() + 1) // Token 1 Stunde gültig
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
 
-      // Speichere Token in der Datenbank
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({
-          reset_token: resetToken,
-          reset_token_expires: expiresAt.toISOString(),
-        })
-        .eq("email", email)
+      const data = await res.json()
 
-      if (updateError) {
-        // Aus Sicherheitsgründen sagen wir nicht, ob die Email existiert
-        setMessage({
-          type: "success",
-          text: "Wenn diese Email existiert, erhältst du in Kürze einen Link zum Zurücksetzen deines Passworts.",
-        })
+      if (!res.ok) {
+        setMessage({ type: "error", text: data.error || "Ein Fehler ist aufgetreten." })
         return
       }
 
-      // Hier müsste eigentlich eine Email gesendet werden
-      // Für die Demo zeigen wir den Link an
-      const resetLink = `${window.location.origin}/reset-password?token=${resetToken}&email=${email}`
-      
-      setMessage({
-        type: "success",
-        text: `Link zum Zurücksetzen: ${resetLink}`,
-      })
+      setMessage({ type: "success", text: data.message })
     } catch (error) {
       setMessage({
         type: "error",

@@ -3,21 +3,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import { sendEmail } from "@/lib/email/email-service";
 
 // Supabase Client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
-
-// Nodemailer Transporter für Gmail
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {user: process.env.GMAIL_USER,      // Holt sich deine E-Mail aus .env.local
-    pass: process.env.GMAIL_APP_PASSWORD,  // Holt sich dein Passwort aus .env.local
-  },
-});
 
 // E-Mail Template
 function getPasswordResetEmailHTML(resetLink: string, email: string): string {
@@ -128,39 +120,30 @@ export async function POST(request: Request) {
     }
 
     // 4. Reset-Link zusammenbauen
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
     const resetLink = `${baseUrl}/reset-password?token=${token}&email=${encodeURIComponent(
       email.trim()
     )}`;
 
-    // 5. E-Mail mit Nodemailer versenden
-    try {
-      const mailOptions = {
-        from: `"E-Shop" <${process.env.GMAIL_USER}>`,
+    // 5. E-Mail mit Resend versenden
+    const emailResult = await sendEmail({
         to: email.trim(),
         subject: "🔐 Passwort zurücksetzen - E-Shop",
         html: getPasswordResetEmailHTML(resetLink, email.trim()),
-        text: `
-Passwort zurücksetzen
+    });
 
-Hallo,
+      // const info = await transporter.sendMail(mailOptions);
+      // console.log("✅ E-Mail versendet:", info.response);
 
-Du hast eine Anforderung zum Zurücksetzen deines Passworts gestellt.
+    if (!emailResult.success) {
+      console.error("❌ Fehler beim E-Mail-Versand:", emailResult.error);
+      return NextResponse.json(
+        { error: "Fehler beim Versenden der E-Mail. Bitte versuche es später erneut." },
+        { status: 500 }
+      );
+    }
 
-Bitte klick auf diesen Link:
-${resetLink}
-
-Dieser Link ist nur 1 Stunde lang gültig.
-
-Wenn du diese Anforderung nicht gestellt hast, ignoriere diese E-Mail.
-
-Viele Grüße,
-Dein E-Shop Team
-        `,
-      };
-
-      const info = await transporter.sendMail(mailOptions);
-      console.log("✅ E-Mail versendet:", info.response);
+    console.log("✅ E-Mail versendet an:", email);
 
       return NextResponse.json(
         {
@@ -169,15 +152,6 @@ Dein E-Shop Team
         },
         { status: 200 }
       );
-    } catch (emailError) {
-      console.error("❌ Fehler beim E-Mail-Versand:", emailError);
-      return NextResponse.json(
-        {
-          error: "Fehler beim Versenden der E-Mail. Bitte versuche es später erneut.",
-        },
-        { status: 500 }
-      );
-    }
   } catch (error) {
     console.error("❌ System Error:", error);
     return NextResponse.json(

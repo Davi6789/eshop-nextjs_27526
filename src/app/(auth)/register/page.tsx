@@ -6,6 +6,8 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { sendEmail } from "@/lib/email/email-service";
+import { welcomeEmail } from "@/lib/email/templates";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -38,13 +40,31 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, confirmPassword }), // ← confirmPassword ergänzen!
       });
 
       const data = await res.json();
 
       if (!res.ok) {
+        // ✅ Zeige die genaue Zod-Fehlermeldung
+        if (data.details && Array.isArray(data.details)) {
+          const messages = data.details.map((d: any) => d.message).join(" | ");
+          throw new Error(messages);
+        }
         throw new Error(data.error || "Registrierung fehlgeschlagen");
+      }
+
+      // ✅ Willkommens-Email senden
+      const emailResult = await sendEmail({
+        to: email,
+        subject: welcomeEmail(name || email.split("@")[0]).subject,
+        html: welcomeEmail(name || email.split("@")[0]).html,
+      });
+
+      if (emailResult.success) {
+        console.log("Willkommens-Email gesendet an:", email);
+      } else {
+        console.error("Willkommens-Email fehlgeschlagen:", emailResult.error);
       }
 
       // Automatisch anmelden nach erfolgreicher Registrierung
@@ -78,7 +98,7 @@ export default function RegisterPage() {
             Werde Teil unserer Community
           </p>
         </div>
-        
+
         {/* Form Container */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
           {error && (
@@ -86,7 +106,7 @@ export default function RegisterPage() {
               {error}
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -143,9 +163,25 @@ export default function RegisterPage() {
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Wird registriert...
                 </div>
@@ -154,11 +190,14 @@ export default function RegisterPage() {
               )}
             </button>
           </form>
-          
+
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Bereits ein Konto?{" "}
-              <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition">
+              <Link
+                href="/login"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition"
+              >
                 Hier anmelden
               </Link>
             </p>
