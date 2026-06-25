@@ -1,12 +1,12 @@
 // src/app/admin/layout.tsx
 
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const menuItems = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
@@ -16,22 +16,22 @@ const menuItems = [
   { href: "/admin/coupons", label: "Gutscheine", icon: "🎟️" },
   { href: "/admin/reviews", label: "Bewertungen", icon: "⭐" },
   { href: "/admin/settings", label: "Einstellungen", icon: "⚙️" },
-]
+];
 
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const pathname = usePathname()
-  const router = useRouter()
-  const { data: session } = useSession()
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleLogout = async () => {
-    await signOut({ redirect: false })
-    router.push("/login")
-  }
+    await signOut({ redirect: false });
+    router.push("/login");
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -58,9 +58,10 @@ export default function AdminLayout({
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
             {menuItems.map((item) => {
-              const isActive = pathname === item.href || 
-                (item.href !== "/admin" && pathname.startsWith(item.href))
-              
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/admin" && pathname.startsWith(item.href));
+
               return (
                 <Link
                   key={item.href}
@@ -74,7 +75,7 @@ export default function AdminLayout({
                   <span className="text-xl">{item.icon}</span>
                   <span>{item.label}</span>
                 </Link>
-              )
+              );
             })}
           </nav>
 
@@ -109,10 +110,10 @@ export default function AdminLayout({
 
       {/* Main Content */}
       <main className={`transition-all ${sidebarOpen ? "md:ml-64" : ""}`}>
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-8 bg-gray-100 dark:bg-gray-900 min-h-screen">
           {children}
         </div>
       </main>
     </div>
-  )
+  );
 }

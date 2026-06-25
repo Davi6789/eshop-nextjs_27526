@@ -8,6 +8,7 @@ import Navbar from "@/components/ui/Navbar";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import Footer from "@/components/ui/Footer";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,7 +30,8 @@ export const metadata: Metadata = {
     "kaufen",
     "elektronik",
     "mode",
-    "computer", "gaming"
+    "computer",
+    "gaming",
   ],
   authors: [{ name: "E-Shop Team" }],
   creator: "E-Shop",
@@ -75,16 +77,14 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  // alternates: {
-  //   canonical: "https://eshop.com",
-  // },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION || "",
   },
-  category: "e-commerce",
+  
   alternates: {
     canonical: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   },
+  category: "e-commerce",
 };
 
 export default function RootLayout({
@@ -95,17 +95,19 @@ export default function RootLayout({
   return (
     <html lang="de" suppressHydrationWarning>
       <body className={inter.className}>
-        <NextAuthSessionProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <Navbar />
-              <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-                {children}
-              </main>
-              <Footer />
-            </WishlistProvider>
-          </CartProvider>
-        </NextAuthSessionProvider>
+        <ThemeProvider>
+          <NextAuthSessionProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <Navbar />
+                <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+                  {children}
+                </main>
+                <Footer />
+              </WishlistProvider>
+            </CartProvider>
+          </NextAuthSessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

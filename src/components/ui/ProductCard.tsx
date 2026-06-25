@@ -1,156 +1,70 @@
-// src/components/ui/ProductCard.tsx    (Wishlist Check)
+//  src/components/ui/ProductCard.tsx
 
-"use client";
+"use client"
 
-import Image from "next/image";
-import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
-import { supabase } from "@/lib/supabase/client";
-import { useSession } from "next-auth/react";
-import CountdownTimer from "./CountdownTimer";
-import WishlistButton from "./WishlistButton";
+import Image from "next/image"
+import Link from "next/link"
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase/client"
+import { useSession } from "next-auth/react"
+import { useCart } from "@/context/CartContext"
+import WishlistButton from "./WishlistButton"
+import CountdownTimer from "./CountdownTimer"
 
 interface ProductCardProps {
   product: {
-    id: string;
-    title: string;
-    slug: string;
-    description: string;
-    price: number;
-    current_price: number;
-    has_discount: boolean;
-    discount_percent: number;
-    discount_ends_at: string | null;
-    image_url: string | null;
-    images: string[] | null;
-    stock: number;
-    rating_avg: number;
-    rating_count: number;
-  };
+    id: string
+    title: string
+    slug: string
+    price: number
+    current_price: number
+    has_discount: boolean
+    discount_percent: number
+    discount_ends_at?: string | null
+    image_url: string | null
+    images: string[] | null
+    stock: number
+    rating_avg: number
+    rating_count: number
+  }
 }
 
-// In ProductCard.tsx - verhindert wiederholte Wishlist-Checks
 export default function ProductCard({ product }: ProductCardProps) {
-  const { data: session } = useSession();
-  const [isInWishlist, setIsInWishlist] = useState(false);
-  const wishlistChecked = useRef(false);
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const { data: session } = useSession()
+  const { addItem } = useCart()
+  const [addingToCart, setAddingToCart] = useState(false)
 
-  // Prüfen ob Produkt in Wunschliste ist
-  useEffect(() => {
-    if (session?.user?.id && !wishlistChecked.current) {
-      wishlistChecked.current = true;
-      checkWishlistStatus();
-    }
-  }, [session]);
-
-  const checkWishlistStatus = async () => {
-    const { data, error } = await supabase
-      .from("wishlist")
-      .select("id")
-      .eq("user_id", session?.user?.id)
-      .eq("product_id", product.id)
-      .single();
-
-    if (!error && data) {
-      setIsInWishlist(true);
-    }
-  };
-
-  const toggleWishlist = async () => {
-    if (!session) {
-      window.location.href = "/login";
-      return;
-    }
-
-    try {
-      if (isInWishlist) {
-        // Aus Wunschliste entfernen
-        const { error } = await supabase
-          .from("wishlist")
-          .delete()
-          .eq("user_id", session.user.id)
-          .eq("product_id", product.id);
-
-        if (!error) {
-          setIsInWishlist(false);
-          console.log("✅ Aus Wishlist entfernt");
-        } else {
-          console.error("❌ Delete error:", error);
-        }
-      } else {
-        // Zur Wunschliste hinzufügen
-        const { error } = await supabase.from("wishlist").insert({
-          user_id: session.user.id,
-          product_id: product.id,
-        });
-
-        if (!error) {
-          setIsInWishlist(true);
-          console.log("✅ Zur Wishlist hinzugefügt");
-        } else {
-          console.error("❌ Insert error:", error);
-        }
-      }
-    } catch (error) {
-      console.error("❌ Wishlist error:", error);
-    }
-  };
-
-  const addToCart = () => {
-    if (!product) return;
-
-    // Temporärer Cart - später mit Context
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const existingItem = cart.find((item: any) => item.id === product.id);
-
-    if (existingItem) {
-      existingItem.quantity += 1; // ✅ Immer +1
-      console.log("✅ Menge erhöht:", existingItem); // ← NEU
-    } else {
-      cart.push({
-        id: product.id,
-        title: product.title,
-        price: product.current_price,
-        image: product.images?.[0],
-        quantity: 1, // ✅ Immer +1
-      });
-      console.log("✅ Produkt hinzugefügt!", product.title);
-    }
-
-    localStorage.setItem("cart", JSON.stringify(cart));
-    console.log("📦 Cart gespeichert:", cart); // ← NEU
-    // Event für Cart Update auslösen
-    window.dispatchEvent(new Event("cartUpdated"));
-
-    setIsAddingToCart(true);
-    setTimeout(() => setIsAddingToCart(false), 1500);
-  };
-
-  // Sterne Bewertung anzeigen - Vor dem return einfügen!
+  // Sterne Bewertung anzeigen
   const renderStars = () => {
-    const stars = [];
-    const rating = Math.round(product.rating_avg || 0);
+    const stars = []
+    const rating = Math.round(product.rating_avg || 0)
     for (let i = 1; i <= 5; i++) {
       stars.push(
-        <span
-          key={i}
-          className={i <= rating ? "text-yellow-400" : "text-gray-300"}
-        >
+        <span key={i} className={i <= rating ? "text-yellow-400" : "text-gray-300 dark:text-gray-600"}>
           ★
-        </span>,
-      );
+        </span>
+      )
     }
-    return stars;
-  };
+    return stars
+  }
 
-  // HIER GEÄNDERT: Fallback für die kaputten lokalen Bilder
-  const displayImageUrl = product.image_url?.startsWith("/images/")
-    ? `https://picsum.photos/seed/${product.slug}/400/300`
-    : product.image_url || `https://picsum.photos/seed/${product.slug}/400/300`;
+  const addToCart = () => {
+    addItem({
+      id: product.id,
+      title: product.title,
+      price: product.current_price,
+      image: product.image_url ?? undefined,
+      quantity: 1,
+      stock: product.stock
+    })
+    
+    setAddingToCart(true)
+    setTimeout(() => setAddingToCart(false), 1000)
+  }
 
   return (
     <div className="group relative bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden">
+      
       {/* Discount Badge */}
       {product.has_discount && (
         <div className="absolute top-2 left-2 z-10 bg-red-500 text-white px-2 py-1 rounded-md text-sm font-semibold">
@@ -158,86 +72,80 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       )}
 
+      {/* Countdown Timer bei Rabatt */}
       {product.has_discount && product.discount_ends_at && (
-        <div className="absolute bottom-2 left-2 z-10 bg-black/70 backdrop-blur-sm rounded-md px-2 py-0.5">
+        <div className="absolute bottom-2 left-2 z-10 bg-black/70 dark:bg-black/80 backdrop-blur-sm rounded-md px-2 py-0.5">
           <CountdownTimer targetDate={product.discount_ends_at} size="sm" />
         </div>
       )}
 
       {/* Wishlist Button */}
-      {/* <button
-        onClick={toggleWishlist}
-        className="absolute top-2 right-2 z-10 bg-white dark:bg-gray-800 rounded-full p-2 shadow-md hover:scale-110 transition"
-      >
-        <span className="text-xl">{isInWishlist ? "❤️" : "🤍"}</span>
-      </button> */}
-
-      {/* DURCH NEUEN BUTTON: */}
       <div className="absolute top-2 right-2 z-10">
         <WishlistButton productId={product.id} size="md" />
       </div>
-      
+
       {/* Product Image */}
-      <Link href={`/products/${product.slug}`} className="block relative z-0">
-        <div className="relative h-64 bg-gray-200 dark:bg-gray-700 overflow-hidden">
-          {/* {product.image_url ? ( */}
-          <Image
-            // src={product.image_url}
-            src={displayImageUrl}
-            alt={`${product.title} - Produktbild`}
-            fill
-            unoptimized // WICHTIG: Stoppt die Next.js Bildprüfung für leere Dateien
-            loading="eager" // ← Statt "eager" für bessere Performance ich ändere auf eager statt lazy
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
+      <Link href={`/products/${product.slug}`}>
+        <div className="relative h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
+          {product.image_url ? (
+            <Image
+              src={product.image_url}
+              alt={product.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = "none";
+              }}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <span className="text-gray-400 dark:text-gray-500 text-4xl">📷</span>
+            </div>
+          )}
         </div>
       </Link>
 
-      {/* Product Info */}
-      <div className="p-4 flex flex-col grow">
+      {/* Product Info - ALLE dark: Klassen hier! */}
+      <div className="p-4">
         <Link href={`/products/${product.slug}`}>
-          <h3 className="block text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 transition line-clamp-2 h-14">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition line-clamp-2 min-h-[56px]">
             {product.title}
           </h3>
         </Link>
 
-        {/* Rating */}
-        <div className="min-h-[24px] flex items-center mt-1">
-          {product.rating_count > 0 ? (
-            <div className="flex items-center">
-              <div className="flex text-sm">{renderStars()}</div>
-              <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
-                ({product.rating_count})
-              </span>
+        {/* ⭐ Rating */}
+        {product.rating_count > 0 && (
+          <div className="flex items-center mt-1">
+            <div className="flex text-sm">
+              {renderStars()}
             </div>
-          ) : (
-            // Unsichtbarer Platzhalter für ein sauberes Grid
-            <span className="text-xs text-gray-400 italic dark:text-gray-500">
-              Noch keine Bewertungen
+            <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
+              ({product.rating_count})
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Price */}
+        {/* Price - dark: Klassen */}
         <div className="mt-2">
           {product.has_discount ? (
             <div className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-red-600">
+              <span className="text-xl font-bold text-red-600 dark:text-red-400">
                 €{product.current_price.toFixed(2)}
               </span>
-              <span className="text-sm text-gray-500 line-through">
+              <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
                 €{product.price.toFixed(2)}
               </span>
             </div>
           ) : (
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">
+            <span className="text-xl font-bold text-gray-900 dark:text-white">
               €{product.current_price.toFixed(2)}
             </span>
           )}
         </div>
 
-        {/* Stock Status */}
+        {/* Stock Status - dark: Klassen */}
         <div className="mt-2">
           {product.stock > 0 ? (
             <span className="text-xs text-green-600 dark:text-green-400">
@@ -250,15 +158,15 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Add to Cart Button */}
+        {/* Add to Cart Button - dark: Klassen */}
         <button
           onClick={addToCart}
-          disabled={product.stock === 0 || isAddingToCart} // <-- Hier wird die Variable gesucht!
-          className="mt-auto w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={product.stock === 0 || addingToCart}
+          className="mt-4 w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
         >
-          {isAddingToCart ? "✓ Hinzugefügt!" : "🛒 In den Warenkorb"}
+          {addingToCart ? "✓ Hinzugefügt!" : "🛒 In den Warenkorb"}
         </button>
       </div>
     </div>
-  );
+  )
 }

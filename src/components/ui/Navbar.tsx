@@ -8,6 +8,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import CartDrawer from "./CartDrawer";
 import { useWishlist } from "@/context/WishlistContext";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const { data: session, status } = useSession();
@@ -58,6 +59,8 @@ export default function Navbar() {
               >
                 Produkte
               </Link>
+
+              {/* <div className="flex items-center space-x-4"> */}
 
               {/* HIER IST DER NEUE WISHLIST BUTTON */}
               <Link
@@ -133,6 +136,9 @@ export default function Navbar() {
                   Anmelden
                 </Link>
               )}
+
+              {/* ✅ Dark Mode Toggle */}
+              <ThemeToggle />
             </div>
           </div>
         </div>
