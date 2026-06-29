@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Roboto_Mono } from "next/font/google"; 
 import "./globals.css";
 import NextAuthSessionProvider from "@/components/providers/SessionProvider";
 import Navbar from "@/components/ui/Navbar";
@@ -9,8 +9,23 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import Footer from "@/components/ui/Footer";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import Script from "next/script";
 
-const inter = Inter({ subsets: ["latin"] });
+// Optimierte Fonts mit subset und display swap
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+  preload: true,
+  fallback: ["system-ui", "arial", "sans-serif"],
+});
+
+const robotoMono = Roboto_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-roboto-mono",
+  preload: false, // Nur bei Bedarf laden
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -80,7 +95,7 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION || "",
   },
-  
+
   alternates: {
     canonical: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   },
@@ -92,9 +107,52 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const isProduction = process.env.NODE_ENV === "production";
+
   return (
-    <html lang="de" suppressHydrationWarning>
+    
+    <html
+      lang="de"
+      className={`${inter.variable} ${robotoMono.variable}`}
+      suppressHydrationWarning
+      data-scroll-behavior="smooth" 
+    >
+      <head>
+        {/* Preconnect zu wichtigen Domains */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+
+        {/* DNS Prefetch */}
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+      </head>
       <body className={inter.className}>
+
+        {/* ✅ Google Analytics - nur in Production */}
+        {isProduction && (
+          <>
+            <Script
+              id="google-analytics"
+              strategy="afterInteractive"
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+            />
+            <Script id="google-analytics-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+              `}
+            </Script>
+          </>
+        )}
+
         <ThemeProvider>
           <NextAuthSessionProvider>
             <CartProvider>
