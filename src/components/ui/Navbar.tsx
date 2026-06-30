@@ -75,9 +75,6 @@ export default function Navbar() {
                 Produkte
               </Link>
 
-              {/* Theme Toggle */}
-              <ThemeToggle />
-
               {/* Wishlist Button */}
               <Link
                 href="/dashboard/wishlist"
@@ -170,12 +167,13 @@ export default function Navbar() {
                   Anmelden
                 </Link>
               )}
+
+              {/* ✅ ThemeToggle GANZ RECHTS */}
+              <ThemeToggle />
             </div>
 
             {/* Mobile Menu Button */}
             <div className="flex items-center gap-3 md:hidden">
-              <ThemeToggle />
-
               <button
                 onClick={handleCartToggle}
                 className="relative text-gray-700 dark:text-gray-300"
@@ -260,12 +258,15 @@ export default function Navbar() {
                   Anmelden
                 </Link>
               )}
+              {/* ✅ Mobile: ThemeToggle ganz unten im Menü */}
+              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+              <ThemeToggle />
+              </div>
             </div>
           </div>
         )}
       </nav>
       {isCartOpen && <CartDrawer onClose={() => setIsCartOpen(false)} />}
-      {/* <CartDrawer onClose={() => setIsCartOpen(false)} /> */}
     </>
   );
 }

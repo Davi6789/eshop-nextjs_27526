@@ -1,52 +1,53 @@
 // src/app/(shop)/page.tsx  mit Flash Sale Banner
 
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import ProductGrid from "@/components/ui/ProductGrid"
-import FlashSaleBanner from "@/components/ui/FlashSaleBanner"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import ProductGrid from "@/components/ui/ProductGrid";
+import FlashSaleBanner from "@/components/ui/FlashSaleBanner";
+import Link from "next/link";
 
 export default function HomePage() {
-  const [products, setProducts] = useState([])
-  const [discountProducts, setDiscountProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [flashSaleEnd, setFlashSaleEnd] = useState<string>("")
+  const [products, setProducts] = useState([]);
+  const [discountProducts, setDiscountProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [flashSaleEnd, setFlashSaleEnd] = useState<string>("");
 
   useEffect(() => {
-    loadProducts()
-  }, [])
+    loadProducts();
+  }, []);
 
   const loadProducts = async () => {
     try {
       // Hauptprodukte
-      const res = await fetch("/api/products?limit=8")
-      const data = await res.json()
-      setProducts(data.products)
+      const res = await fetch("/api/products?limit=8");
+      const data = await res.json();
+      setProducts(data.products);
 
       // Angebote (mit aktivem Rabatt)
-      const discountRes = await fetch("/api/products?has_discount=true&limit=4")
-      const discountData = await discountRes.json()
-      setDiscountProducts(discountData.products)
-      
+      const discountRes = await fetch(
+        "/api/products?has_discount=true&limit=4",
+      );
+      const discountData = await discountRes.json();
+      setDiscountProducts(discountData.products);
+
       // Flash Sale Endzeit (höchstes discount_until)
       if (discountData.products?.length > 0) {
         const endTimes = discountData.products
           .filter((p: any) => p.discount_ends_at)
-          .map((p: any) => new Date(p.discount_ends_at).getTime())
-        const latestEnd = new Date(Math.max(...endTimes))
-        setFlashSaleEnd(latestEnd.toISOString())
+          .map((p: any) => new Date(p.discount_ends_at).getTime());
+        const latestEnd = new Date(Math.max(...endTimes));
+        setFlashSaleEnd(latestEnd.toISOString());
       }
     } catch (error) {
-      console.error("Fehler:", error)
+      console.error("Fehler:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      
       {/* Flash Sale Banner */}
       {flashSaleEnd && discountProducts.length > 0 && (
         <FlashSaleBanner endDate={flashSaleEnd} discountPercent={25} />
@@ -64,7 +65,7 @@ export default function HomePage() {
             </p>
             <Link
               href="/products"
-              className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
+              className="inline-block bg-white text-blue-600 dark:bg-gray-800 dark:text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition"
             >
               Jetzt einkaufen →
             </Link>
@@ -82,7 +83,10 @@ export default function HomePage() {
                 Blitzangebote
               </h2>
             </div>
-            <Link href="/products?filter=discount" className="text-blue-600 hover:text-blue-500">
+            <Link
+              href="/products?filter=discount"
+              className="text-blue-600 hover:text-blue-500"
+            >
               Alle anzeigen →
             </Link>
           </div>
@@ -112,25 +116,31 @@ export default function HomePage() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Kostenloser Versand
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">Ab 50€ Bestellwert</p>
+              <p className="text-gray-600 dark:text-gray-400">
+                Ab 50€ Bestellwert
+              </p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-3">🔄</div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 30 Tage Rückgaberecht
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">Einfach und unkompliziert</p>
+              <p className="text-gray-600 dark:text-gray-400">
+                Einfach und unkompliziert
+              </p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-3">🔒</div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Sichere Zahlung
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">SSL-verschlüsselt</p>
+              <p className="text-gray-600 dark:text-gray-400">
+                SSL-verschlüsselt
+              </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

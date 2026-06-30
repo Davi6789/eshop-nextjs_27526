@@ -1,48 +1,48 @@
 //  src/app/page.tsx
 
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import ProductGrid from "@/components/ui/ProductGrid"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import ProductGrid from "@/components/ui/ProductGrid";
+import Link from "next/link";
 
 export default function HomePage() {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [featuredProducts, setFeaturedProducts] = useState([])
-  const [latestProducts, setLatestProducts] = useState([])
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [latestProducts, setLatestProducts] = useState([]);
 
   useEffect(() => {
-    loadProducts()
-  }, [])
+    loadProducts();
+  }, []);
 
   const loadProducts = async () => {
     try {
       // Hauptprodukte laden
-      const res = await fetch("/api/products?limit=8")
-      const data = await res.json()
-      setProducts(data.products)
+      const res = await fetch("/api/products?limit=8");
+      const data = await res.json();
+      setProducts(data.products);
 
       // Featured Produkte (mit Rabatt)
-      const featuredRes = await fetch("/api/products?has_discount=true&limit=4")
-      const featuredData = await featuredRes.json()
-      setFeaturedProducts(featuredData.products)
+      const featuredRes = await fetch(
+        "/api/products?has_discount=true&limit=4",
+      );
+      const featuredData = await featuredRes.json();
+      setFeaturedProducts(featuredData.products);
 
       // Neueste Produkte
-      const latestRes = await fetch("/api/products?sort=newest&limit=4")
-      const latestData = await latestRes.json()
-      setLatestProducts(latestData.products)
-
+      const latestRes = await fetch("/api/products?sort=newest&limit=4");
+      const latestData = await latestRes.json();
+      setLatestProducts(latestData.products);
     } catch (error) {
-      console.error("Fehler beim Laden der Produkte:", error)
+      console.error("Fehler beim Laden der Produkte:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
@@ -55,7 +55,7 @@ export default function HomePage() {
             </p>
             <Link
               href="/products"
-              className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
+              className="inline-block bg-white text-blue-600 dark:bg-gray-800 dark:text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-700 transition"
             >
               Jetzt einkaufen →
             </Link>
@@ -70,7 +70,10 @@ export default function HomePage() {
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
               🔥 Heiße Angebote
             </h2>
-            <Link href="/products?filter=discount" className="text-blue-600 hover:text-blue-500">
+            <Link
+              href="/products?filter=discount"
+              className="text-blue-600 hover:text-blue-500"
+            >
               Alle anzeigen →
             </Link>
           </div>
@@ -99,7 +102,10 @@ export default function HomePage() {
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
                 🆕 Neu eingetroffen
               </h2>
-              <Link href="/products?sort=newest" className="text-blue-600 hover:text-blue-500">
+              <Link
+                href="/products?sort=newest"
+                className="text-blue-600 hover:text-blue-500"
+              >
                 Alle anzeigen →
               </Link>
             </div>
@@ -141,5 +147,5 @@ export default function HomePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
